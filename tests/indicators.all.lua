@@ -1,0 +1,5 @@
+return {
+	INLINE_PATTERN	= "[ %s ]",
+	SUCCESS_VALUE	= "PASS",
+	FAILURE_VALUE	= "FAIL"
+}

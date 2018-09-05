@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+#
+# if luajit is not on your path, this script needs to be run with an environment
+# variable "LUA" set to the path of the binary which should be used to run
+# these tests.
+
+DEFAULT_RUNTIMES="${WHICH_LUA51:="lua5.1"};${WHICH_LUA52:="lua5.2"};${WHICH_LUA53:="lua5.3"};${WHICH_LUAJIT:="luajit"};${WHICH_OTHER}"
+ERROR_TMP="/tmp/eonz_core_error_output"
+
+function run_tests_with {
+  (                                                                   \
+    cd ./tests;                                                       \
+    LUA_PATH="./?.lua;./?/init.lua;../src/?.lua;../src/?/init.lua"    \
+    $1 tests.lua 2> "${ERROR_TMP}"                                    \
+  )
+
+  test_result=$?
+  return $test_result
+}
+
+test_runtimes=""
+
+if [ "" = "$1" ]; then
+  test_runtimes="$DEFAULT_RUNTIMES"
+else
+  test_runtimes="$@"
+fi
+
+IFS=';' read -r -a array <<< "$test_runtimes"
+for element in "${array[@]}"
+do
+  runtime=`command -v ${element}`
+
+  if [ "$element" = "" ]
+  then
+    :
+  elif [ "$runtime" = "" ]
+  then
+    echo "not found: \"${element}\""
+    exit 2
+  else
+    run_tests_with $runtime
+    test_result="$?"
+
+    if [ "$test_result" -ne 0 ]
+    then
+      echo ""
+      echo ""
+      echo "  FAILURE WHEN RUN UNDER $runtime"
+      echo ""
+      cat "${ERROR_TMP}"
+      exit 1
+    fi
+  fi
+done
