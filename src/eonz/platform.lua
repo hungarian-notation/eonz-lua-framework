@@ -608,10 +608,10 @@ function Platform:search_path(opts)
 	opts = options.from(opts, {
 		roots = { "." },
 		stubs = {
-			self:path("*", "?.lua"),
 			self:path("?.*.lua"),
+			self:path("*", "?.lua"),
+			self:path("?", "init.*.lua"),
 			self:path("*", "?", "init.lua"),
-			self:path("?", "init.*.lua")
 		}
 	})
 
