@@ -98,6 +98,7 @@ function dsl.assert_raw_equals(expected, actual, variable)
 		dsl.fail((message or "values are not \"rawequal\" to eachother"),
 			expected_was(expected, actual))
 	end
+	return actual
 end
 
 dsl.assert_raw_equal 	= dsl.assert_raw_equals
@@ -108,6 +109,7 @@ function dsl.assert_table_equals(expected, actual, variable)
 		dsl.fail((message or "tables are not equal"),
 			expected_was(table.tostring(expected), table.tostring(actual)))
 	end
+	return actual
 end
 
 function dsl.assert(actual, variable)
@@ -115,6 +117,7 @@ function dsl.assert(actual, variable)
 		dsl.fail((message or "expression did not evaluate to true or a \"true\" value"),
 			show_value('was', actual))
 	end
+	return actual
 end
 
 function dsl.assert_not(actual, variable)
@@ -122,6 +125,7 @@ function dsl.assert_not(actual, variable)
 		dsl.fail((message or "expression did not evaluate to «false» or «nil»"),
 			show_value('was', actual))
 	end
+	return actual
 end
 
 function dsl.assert_true(actual, variable)
@@ -129,6 +133,7 @@ function dsl.assert_true(actual, variable)
 		dsl.fail((message or "expression did not evaluate to «/boolean/» «true»"),
 			show_value('was', actual))
 	end
+	return actual
 end
 
 function dsl.assert_false(actual, variable)
@@ -136,6 +141,7 @@ function dsl.assert_false(actual, variable)
 		dsl.fail((message or "expression did not evaluate to boolean false"),
 			show_value('was', actual))
 	end
+	return actual
 end
 
 function dsl.assert_equals(expected, actual, message)
@@ -143,6 +149,7 @@ function dsl.assert_equals(expected, actual, message)
 		dsl.fail(message or "value did not match expected value",
 			expected_was(expected, actual))
 	end
+	return actual
 end
 
 dsl.assert_equal = dsl.assert_equals
@@ -153,6 +160,7 @@ function dsl.assert_type(expected, value, message)
 		dsl.fail((message or "value was not of the expected type"),
 			expected_was(expected, actual))
 	end
+	return value
 end
 
 function dsl.assert_not_type(not_expected, value, message)
@@ -161,6 +169,7 @@ function dsl.assert_not_type(not_expected, value, message)
 		dsl.fail((message or "value was of an invalid type"),
 			expected_was("anything except " .. tostring(expected), actual))
 	end
+	return value
 end
 
 function dsl.assert_exists(value, message)
