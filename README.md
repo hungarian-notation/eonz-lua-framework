@@ -1,4 +1,4 @@
-#eonz-lua-framework
+# eonz-lua-framework
 
 A framework for prototyping lua games, designed to be relatively non-intrusive
 by default.
@@ -52,17 +52,17 @@ Some candidates are left out for the sake of brevity. The order of precedence
 for variants is:
 
 * Operating System    
-  * *(i.e. 'windows', 'linux', 'osx', 'unknown', 'all')*
+  * *i.e. 'windows', 'linux', 'osx', 'unknown', 'all'*
 * Framework Version   
-  * *(e.g. 'love11.1')*
+  * *e.g. 'love11.1'*
 * Run-time Version   
-  * *(e.g. 'luajit2.1')*
+  * *e.g. 'luajit2.1'*
 * Lua Version   
-  * *(i.e. 'lua5.1', 'lua5.2', 'lua5.4')*
+  * *i.e. 'lua5.1', 'lua5.2', 'lua5.3'*
 * Framework Name   
-  * *(e.g. 'love')*
+  * *e.g. 'love'*
 * Run-time Name   
-  * *(i.e. 'luajit', 'luaj')*
+  * *i.e. 'luajit', 'luaj'*
 
 Each variant chain is applied to each path stub before moving to the next
 variant chain. The default path stubs are:
