@@ -11,7 +11,7 @@ function dsl.fail(message, rest)
 	message = message:gsub("«", 	console.apply(styles.value))
 	message = message:gsub("»", 	console.apply({}))
 
-	error(console.apply({}) .. message .. tostring(rest or ""), 3)
+	error(console.apply({}) .. message .. tostring(rest or ""), 5)
 end
 
 local function process_value(value, unquote)

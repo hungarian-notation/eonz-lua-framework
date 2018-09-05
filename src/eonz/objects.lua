@@ -16,7 +16,7 @@ function objects.class(name)
 		local table = {}
 		table.__index 		= table
 		table.__class_name 	= name
-		return setmetatable(table, metatable)
+		return setmetatable(table, BaseObject)
 	end
 end
 
