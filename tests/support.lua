@@ -2,16 +2,12 @@
 local lib = {}
 
 function lib.configure()
-
-
 	lib.eonz = require("eonz") {
 		path_roots = {
 			{"..", "src"},
 			{"."}
 		}
 	}
-
-	-- print(package.path)
 
 	return lib
 end

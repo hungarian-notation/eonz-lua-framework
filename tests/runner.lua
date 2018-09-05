@@ -12,7 +12,6 @@ local function default_invoker(test, name, test_env)
 	return ok, error
 end
 
-
 local function run_test(test, test_name, fixture, env)
 	io.write(string.format("  %s ", console.style(styles.test_name, test_name)))
 

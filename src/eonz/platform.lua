@@ -5,7 +5,6 @@ local options			= require "eonz.options"
 
 local Platform = {}
 
-
 -- Platform will serve as the metatable for the returned value.
 Platform.__index = Platform
 

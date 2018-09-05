@@ -18,6 +18,7 @@ local options = {}
 -- into a new empty table, and then merging the computed values
 -- over the merged default values. The defaults table is not
 -- modified.
+
 function options.from(value, defaults)
 
 	if type(value) == 'nil' then
