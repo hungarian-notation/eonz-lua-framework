@@ -58,7 +58,7 @@ for variants is:
 * Run-time Version   
   * *e.g. 'luajit2.1'*
 * Lua Version   
-  * *i.e. 'lua5.1', 'lua5.2', 'lua5.4'*
+  * *i.e. 'lua5.1', 'lua5.2', 'lua5.3'*
 * Framework Name   
   * *e.g. 'love'*
 * Run-time Name   
