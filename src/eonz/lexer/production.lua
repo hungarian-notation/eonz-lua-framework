@@ -56,8 +56,14 @@ do
 		return setmetatable(instance, Production)
 	end
 
-	function Production:id()
-		return self._id
+	function Production:id(test)
+		if type(test) == 'string' then
+			return self._id == test
+		elseif type(test) == 'table' then
+			return table.contains(test, self._id)
+		else
+			return self._id
+		end
 	end
 
 	function Production:patterns()

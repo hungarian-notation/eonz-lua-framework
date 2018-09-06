@@ -31,28 +31,46 @@ do
 		}
 	end
 
-	function Token:text()
+	function Token:text(test)
 		if not self._text then
 			self._text = self:source():sub(self:start(), self:stop() - 1)
 		end
 
-		return self._text
+		if test then
+			return self._text == test
+		else
+			return self._text
+		end
 	end
 
-	function Token:id()
-		return self._production:id()
+	function Token:id(...)
+		return self:production():id(...)
 	end
 
 	function Token:production()
 		return self._production
 	end
 
-	function Token:captures()
-		return self._captures
+	function Token:captures(i, test)
+		if i then
+			local value = self._captures[i]
+
+			if test then
+				return value == test
+			else
+				return value
+			end
+		else
+			return self._captures
+		end
 	end
 
-	function Token:alternative()
-		return self._alternative
+	function Token:alternative(test)
+		if test then
+			return self._alternative == test
+		else
+			return self._alternative
+		end
 	end
 
 	Token.alt = Token.alternative
