@@ -41,6 +41,25 @@ test["table.equals(a, b) arrays torture test"] = function()
 
 end
 
+test["table.equals(a, b, true) recursive mode"] = function()
+	local a = {
+		"a", "b", "c", { "d", "e" },
+		x = { 1, 2, 3 },
+		y = { 4, 5, 6 },
+	}
+
+	local b = {
+		"a",
+		y = { 4, 5, 6 },
+		"b",
+		x = { 1, 2, 3 },
+		"c", { "d", "e" },
+	}
+
+	assert_false(table.equals(a, b))
+	assert_true(table.equals(a, b, true))
+end
+
 test["table.slice()"] = function()
 	local a = table.array { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 	}
 	local b = table.array { 	 4, 5, 6, 7, 8, 9, 10, 11 	}

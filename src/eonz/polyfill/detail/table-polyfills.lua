@@ -1,7 +1,7 @@
 
 local options = require "eonz.options"
 
-local function equals_impl(a, b)
+local function equals_impl(a, b, recursive)
 	if rawequal (a, b) then
 		return true
 	end
@@ -16,7 +16,13 @@ local function equals_impl(a, b)
 		local v_b = b[key]
 
 		if v_a ~= v_b then
-			return false
+			if recursive and type(v_a) == 'table' and type(v_b) == 'table' then
+				if not equals_impl(v_a, v_b, true) then
+					return false
+				end
+			else
+				return false
+			end
 		end
 
 		compared[key] = true
@@ -86,8 +92,8 @@ local function slice_impl(t, from_index, to_index)
 
 	copy 		= {}
 	count 		= #t
-	from_index 	= index_value(from_index, count)
-	to_index	= index_value(to_index, count)
+	from_index 	= index_value(from_index or 1, 		count)
+	to_index	= index_value(to_index or count, 	count)
 	offset 		= from_index - 1
 
 	for i = from_index, to_index do
