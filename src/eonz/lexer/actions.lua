@@ -44,6 +44,16 @@ function actions.skip()
 	end
 end
 
+function actions.virtual()
+
+	return function(ctx, tok)
+		local new_token = tok:virtualize()
+		ctx:remove_token()
+		ctx:insert_token(new_token)
+		ctx:position(new_token:stop())
+	end
+end
+
 actions.push 	= actions.push_mode
 actions.pop 	= actions.pop_mode
 

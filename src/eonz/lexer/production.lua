@@ -44,16 +44,29 @@ do
 			pattern = { pattern }
 		end
 
+		if type(id) == 'table' then
+			opt.display = id[2]
+			id = id[1]
+		end
+
+		id = id:trim()
+
 		local instance = {
-			_id 		= id:trim(),
+			_id 		= id,
+			_display	= opt.display or id,
 			_pattern 	= pattern,
 			_modes		= opt.modes,
 			_channels	= opt.channels,
 			_actions	= opt.actions,
 			_predicates	= opt.predicates,
+			_error		= opt.error
 		}
 
 		return setmetatable(instance, Production)
+	end
+
+	function Production:display()
+		return self._display
 	end
 
 	function Production:id(test)
@@ -109,7 +122,7 @@ do
 		return { string.match(source_text, self:compile()[pattern_index], init) }
 	end
 
-	function Production:match(source_text, init)
+	function Production:match(source_text, init, ctx)
 		for alternative = 1, #self:patterns() do
 			local groups = self:try_match(source_text, init, alternative)
 
@@ -126,7 +139,9 @@ do
 					stop 		= stop,
 					source 		= source_text,
 					captures 	= captures,
-					alternative	= alternative
+					alternative	= alternative,
+					context		= ctx,
+					error		= self._error
 				}
 			end
 		end

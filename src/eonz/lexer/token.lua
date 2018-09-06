@@ -2,15 +2,21 @@ local eonz = require "eonz"
 
 local Token = eonz.class "eonz::lexer::Token"
 do
+	Token.ERROR_TOKEN 		= 'error'
+	Token.ERROR_TOKEN_UNMATCHED 	= 'unexpected token'
+
 	function Token.new(args)
 		local instance = {
-			_production 	= assert(args.production),
-			_start		= assert(args.start),
-			_stop		= assert(args.stop),
-			_source		= assert(args.source),
-			_alternative	= assert(args.alternative),
+			_error		= args.error and (args.production and args.production:id()) or args.error,
+			_production 	= not args.error and assert(args.production) or args.production or nil,
+			_start		= assert(args.start	),
+			_stop		= assert(args.stop	),
+			_source		= assert(args.source	),
+			_alternative	= not args.error and assert(args.alternative) or 1,
 			_text		= args.text,
-			_captures	= args.captures or {}
+			_captures	= args.captures or {},
+			_ctx		= args.context,
+			_line_info	= args.line_info
 		}
 
 		return setmetatable(instance, Token)
@@ -28,7 +34,44 @@ do
 			source		= self:source(),
 			captures	= table.join(self:captures(), other:captures()),
 			alternative	= -1,
+			context		= self:context()
 		}
+	end
+
+	function Token:virtualize()
+		return Token {
+			production 	= self:production(),
+			start		= self:start(),
+			stop		= self:start(),
+			source		= self:source(),
+			captures	= {},
+			alternative	= -2,
+			context		= self:context()
+		}
+	end
+
+	function Token:context()
+		return self._ctx
+	end
+
+	function Token:line_info()
+		if self._ctx and not self._line_info then
+			self._line_info = self:context():line_at(self:start())
+		end
+
+		return self._line_info
+	end
+
+	function Token:line_number()
+		return self:line_info() and (self:line_info().index) or -1
+	end
+
+	function Token:line_position()
+		return self:line_info() and (self:start() - self:line_info().start + 1) or -1
+	end
+
+	function Token:error()
+		return self._error
 	end
 
 	function Token:text(test)
@@ -43,8 +86,20 @@ do
 		end
 	end
 
-	function Token:id(...)
-		return self:production():id(...)
+	function Token:id(test)
+		if self:error() then
+			if type(test) ~= 'table' then
+				test = {test}
+			end
+
+			--print(table.tostring(test), self:error(), Token.ERROR_TOKEN)
+
+			return ((#test) == 0 and self:error())
+				or table.contains(test, self:error())
+				or table.contains(test, Token.ERROR_TOKEN)
+		else
+			return self:production():id(test)
+		end
 	end
 
 	function Token:production()
@@ -93,6 +148,8 @@ do
 	end
 
 	function Token:__tostring()
+		--if self:error() then return "(ERROR)" end
+
 		local sanitized = self:text()
 
 		sanitized = sanitized:gsub("%s", "·")

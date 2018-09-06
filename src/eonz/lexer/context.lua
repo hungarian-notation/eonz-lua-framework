@@ -1,5 +1,6 @@
 local eonz 		= require "eonz"
 local Production 	= require "eonz.lexer.production"
+local Token 		= require "eonz.lexer.token"
 
 local Context = eonz.class "eonz::lexer::Context"
 do
@@ -12,7 +13,69 @@ do
 			_pos	= opt.init or 0,
 			_tok	= {},
 			_mod	= { opt.mode },
+			_lines	= nil
 		}, Context)
+	end
+
+	function Context:production_for(id)
+		return self:grammar():production_for(id)
+	end
+
+	function Context:display_for(id)
+		local production = self:production_for(id)
+		return production and production:display() or id
+	end
+
+	function Context:analyze_source()
+		if not self._lines then
+			local cursor 	= 1
+			local source 	= self._src
+			local lines 	= {}
+
+			while cursor < #source do
+				local n, nx = source:find("[\r]?[\n]", cursor)
+				n 	= n or #source + 1
+				nx 	= nx or n + 1
+
+				local line = {
+					index	= #lines + 1,
+					start 	= cursor,
+					stop 	= n-1
+				}
+
+				lines[line.index] = line
+
+				cursor = nx + 1
+			end
+			self._lines = lines
+		end
+	end
+
+	function Context:lines()
+		self:analyze_source()
+		return self._lines
+	end
+
+	function Context:line_at(i)
+		self:analyze_source()
+		i = i or self._pos
+
+		local lines = self:lines()
+
+		for j = 1, #lines do
+			local line = lines[j]
+			if line.stop > i then
+				return line
+			end
+		end
+
+		return nil
+	end
+
+	function Context:line_number(i)
+		i = i or self._pos
+		local info = self:line_at(i)
+		return info and info.index or nil
 	end
 
 	function Context:grammar()
@@ -29,12 +92,22 @@ do
 
 	function Context:token_index(i)
 		if type(i) ~= 'number' then error('token index not a number', 2) end
-		return (i < 0) and (#self._tok + (i + 1)) or i
+
+		if i < 0 then
+			return #self._tok + i + 1
+		else
+			return i
+		end
 	end
 
 	function Context:tokens(i)
 		if i and type(i) ~= 'number' then error('token index not a number', 2) end
-		return i and self._tok[self:token_index(i)] or self._tok
+
+		if not i then
+			return self._tok
+		else
+			return self._tok[self:token_index(i)]
+		end
 	end
 
 	function Context:remove_token(i)
@@ -87,22 +160,25 @@ do
 				end
 			end
 
-			return production:match(self:source(), self:position())
+			return production:match(self:source(), self:position(), self)
 		end
 	end
 
 	function Context:accept(token)
+		token._line = self:line_number(token:start())
+
 		local npos = #self._tok + 1
 
 		self:insert_token(token, npos)
 		self:position(token:stop())
 
-		for i, action in ipairs(token:production():actions()) do
-			action(self, token)
+		if token:production() then
+			for i, action in ipairs(token:production():actions()) do
+				action(self, token)
+			end
 		end
-
+		
 		local lpos = #self._tok
-
 		return table.slice(self._tok, npos, lpos)
 	end
 
@@ -116,13 +192,21 @@ do
 		for i, production in ipairs(self:productions()) do
 			local token = self:try(production)
 
-			if token and (not best or token:len() > best:len()) then
+			local valid = token and ((not best) or (not token:error()) or (best:error()))
+
+			if valid and ((not best) or (not best or token:len() > best:len())) then
 				best = token
 			end
 		end
 
 		if not best then
-			return nil, self:position()
+			return self:accept(Token {
+				error	= Token.ERROR_TOKEN_UNMATCHED,
+				start 	= self:position(),
+				stop 	= self:position() + 1,
+				source 	= self:source(),
+				context	= self
+			})
 		end
 
 		return self:accept(best)

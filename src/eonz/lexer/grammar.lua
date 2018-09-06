@@ -24,6 +24,16 @@ do
 		}, Grammar)
 	end
 
+	function Grammar:production_for(id)
+		for i, prod in ipairs(self:productions()) do
+			if prod:id(id) then
+				return prod
+			end
+		end
+
+		return nil
+	end
+
 	function Grammar:productions()
 		return self._productions
 	end
