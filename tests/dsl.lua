@@ -112,7 +112,7 @@ function dsl.assert_table_equals(expected, actual, variable)
 	return actual
 end
 
-function dsl.assert_deep_equals(expected, actual, variable)
+function dsl.assert_deep_equals(expected, actual, message)
 	if not table.equals(expected, actual) then
 		dsl.fail((message or "tables are not equal"),
 			expected_was(table.tostring(expected), table.tostring(actual)))
