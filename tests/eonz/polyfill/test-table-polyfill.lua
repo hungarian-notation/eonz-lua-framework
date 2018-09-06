@@ -142,7 +142,7 @@ test["array table.tostring() behavior"] = function()
 
 	local d = table.array {
 		"this", "is", "an",
-		setmetatable({},{__tostring=function() return "array" end}),
+		setmetatable({},{__tostring=function() return "\"array\"" end}),
 		"of strings"
 	}
 

@@ -217,7 +217,7 @@ local function tostring_impl(map, opts)
 	local metatable = getmetatable(map)
 
 	if metatable and metatable.__tostring and metatable.__tostring ~= tostring_impl then
-		return string.format("\"%s\"", tostring(map))
+		return string.format("%s", tostring(map))
 	end
 
 	opts = options.from(opts, {
