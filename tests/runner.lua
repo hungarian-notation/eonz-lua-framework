@@ -6,10 +6,8 @@ local dsl 	= require('dsl')
 local function noop() end
 
 local function default_invoker(test, name, test_env)
-	local host = function() test() end
-	local ok, error = pcall(host)
-
-	return ok, error
+	local host 	= function() test() end
+	return pcall(host)
 end
 
 local function run_test(test, test_name, fixture, env)
@@ -25,12 +23,15 @@ local function run_test(test, test_name, fixture, env)
 	io.flush()
 
 	fixture.before {test=test, name=test_name}
-	local ok, error = fixture.invoker(test, test_name)
+
+	local results 	= { fixture.invoker(test, test_name) }
+	local ok 	= results[1]
+	local error 	= results[2]
+
 	fixture.after {test=test, name=test_name}
 
 	local result = (not ok) and { name=test_name, error=error } or nil
 	support.print_result(result, true)
-
 
 	return result
 end
