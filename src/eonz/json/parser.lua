@@ -38,14 +38,13 @@ do
 			self._ctx:consume()
 			self._stream = Stream(self._ctx:tokens())
 		end
+
 		return self._stream
 	end
 
 	function Parser:eof()
 		return self:stream():eof()
 	end
-
-
 
 	function Parser:sees(id)
 		if self:eof() then
@@ -198,7 +197,6 @@ do
 
 		bf:append("\n\t")
 		bf:append(message)
-
 		eonz.error(tostring(bf))
 	end
 
@@ -287,13 +285,12 @@ do
 			character_rule	= 'string.single.character'
 			self:consume('string.single.start')
 		else
-			self:expect_not('error.unquoted.start', 	"can not match unqoted keys outside of tolerant mode")
+			self:expect_not('error.unquoted.start', "can not match unqoted strings outside of tolerant mode")
 			self:expect_not('string.single.start', 	"can not match single-quote strings outside of relaxed mode")
 			self:consume('string.start')
 		end
 
 		while not self:sees(stop_rule) do
-
 			self:expect_not(nil, 'reached end of file while in string', {
 				location = "while parsing string at " .. format_position(start)
 			})
@@ -364,7 +361,6 @@ do
 		local object = {}
 
 		while not self:sees('object.stop') do
-
 			if self:is_tolerant() then
 				repeat until not self:try_consume('sep.list')
 			end
@@ -401,7 +397,6 @@ do
 			if not self:is_tolerant() and not self:is_relaxed() then
 				self:expect_not('object.stop', 'illegal trailing comma at end of object')
 			end
-
 		end
 
 		self:expect_not('array.stop', "found array bracket ']' where an object bracket '}' was expected.")
@@ -409,9 +404,6 @@ do
 
 		return self:leave(object)
 	end
-
-
-
 
 	function Parser:log(...)
 		--io.write(string.join(...))
@@ -444,7 +436,6 @@ do
 		self:transition('leaving rule: ', leaving, ' (rtype:', type(({...})[1]), ')')
 		return ...
 	end
-
 end
 
 return Parser

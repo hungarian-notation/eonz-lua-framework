@@ -1,3 +1,6 @@
+-- NOTE: This module is a dependency of `eonz.platform` and will be loaded
+-- before the cross-platform path system is initialized. It must be entirely
+-- platform agnostic.
 
 local options = {}
 

@@ -158,7 +158,7 @@ local function copy_impl(t)
 	local copy = {}
 
 	if type(t) ~= 'table' then
-		error("expected argument #1 to be of type: table")
+		error("expected argument #1 to be of type: table", 2)
 	end
 
 	for k, v in pairs(t) do
