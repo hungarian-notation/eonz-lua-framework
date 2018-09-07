@@ -90,7 +90,7 @@ tests['parser validation suite'] = function()
 
 
 		for i, token in ipairs(parser:stream():list()) do
-			print(token)
+			--print(token)
 		end
 
 		local result = invoke("in parser:json() for mock #" .. tostring(i) , parser.json, parser)

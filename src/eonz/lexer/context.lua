@@ -120,11 +120,13 @@ do
 		else
 			--print(production:id() .. " is valid in mode " .. self:mode())
 
+			--[[
 			for i, predicate in ipairs(production:predicates()) do
 				if not predicate(self, production) then
 					return nil
 				end
 			end
+			--]]
 
 			return production:match(self:source(), self:position(), self)
 		end
@@ -165,11 +167,13 @@ do
 
 		if not best then
 			return self:accept(Token {
-				error	= Token.ERROR_TOKEN_UNMATCHED,
-				start 	= self:position(),
-				stop 	= self:position() + 1,
-				source 	= self:source(),
-				context	= self
+				error		= Token.ERROR_TOKEN_UNMATCHED,
+				interval	= info.SourceInterval {
+					start 		= self:position(),
+					stop 		= self:position() + 1,
+					source 		= self:source(),
+				},
+				context		= self
 			})
 		end
 

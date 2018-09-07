@@ -135,7 +135,7 @@ do
 				local stop 		= groups[#groups]
 				local captures		= table.slice(groups, 3, -2)
 
-				return Token {
+				local token = Token {
 					production 	= self,
 					text 		= token_text,
 
@@ -150,6 +150,21 @@ do
 					context		= ctx,
 					error		= self._error
 				}
+
+				for i, predicate in ipairs(self:predicates()) do
+					local token_response, rule_response = predicate(ctx, token)
+
+					if rule_response == false then
+						return nil
+					elseif not token_response then
+						token = nil
+						break
+					end
+				end
+
+				if token then
+					return token
+				end
 			end
 		end
 
