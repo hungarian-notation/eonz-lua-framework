@@ -16,16 +16,17 @@ do
 			_text		= args.text,
 			_captures	= args.captures or {},
 			_ctx		= args.context,
-			_line_info	= args.line_info
+			_line_info	= args.line_info,
+			_data		= {}
 		}
 
 		return setmetatable(instance, Token)
 	end
 
 	function Token:merge(other)
-		if self:stop() ~= other:start() then
-			error("non-adjacent", 2)
-		end
+		--if self:stop() ~= other:start() then
+		--	error("non-adjacent", 2)
+		--end
 
 		return Token {
 			production 	= self:production(),
@@ -33,12 +34,13 @@ do
 			interval	= info.SourceInterval {
 				start 	= self:start(),
 				stop	= other:stop(),
-				source	= self:source()
+				source	= self:source(),
 			},
 
 			captures	= table.join(self:captures(), other:captures()),
 			alternative	= -1,
-			context		= self:context()
+			context		= self:context(),
+			data		= table.merge({}, self:data(), other:data())
 		}
 	end
 
@@ -52,8 +54,13 @@ do
 			},
 			captures	= {},
 			alternative	= -2,
-			context		= self:context()
+			context		= self:context(),
+			data		= table.copy(self:data())
 		}
+	end
+
+	function Token:data()
+		return self._data
 	end
 
 	function Token:context()
