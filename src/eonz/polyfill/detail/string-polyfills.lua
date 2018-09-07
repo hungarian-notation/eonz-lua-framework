@@ -4,7 +4,7 @@
 --]]
 
 local function split_impl(str, sep, opt)
-	options = require("eonz.options").from(opt, {
+	options = require('eonz.options').from(opt, {
 		max = -1
 	})
 
@@ -90,7 +90,7 @@ local function join_impl(...)
 	return table.concat(parts)
 end
 
-local 	StringBuilder = require("eonz.objects").class "StringBuilder"
+local 	StringBuilder = require('eonz.objects').class "StringBuilder"
 do
 	function StringBuilder.new()
 		return setmetatable({parts={}}, StringBuilder)

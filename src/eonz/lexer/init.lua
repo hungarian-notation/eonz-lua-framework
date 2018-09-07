@@ -1,1 +1,1 @@
-local eonz = require "eonz"
+local eonz = require 'eonz'

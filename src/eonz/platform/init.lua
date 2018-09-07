@@ -1,4 +1,4 @@
-require("eonz.polyfill")()
+require('eonz.polyfill')()
 
 local Platform = {}
 

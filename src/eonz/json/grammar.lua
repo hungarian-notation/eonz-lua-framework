@@ -1,6 +1,6 @@
-local eonz	= require "eonz"
-local actions	= require "eonz.lexer.actions"
-local Grammar	= require "eonz.lexer.grammar"
+local eonz	= require 'eonz'
+local actions	= require 'eonz.lexer.actions'
+local Grammar	= require 'eonz.lexer.grammar'
 
 -- Construct Numerical Rules
 

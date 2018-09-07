@@ -1,4 +1,4 @@
-require "eonz.polyfill" (_G)
+require 'eonz.polyfill' (_G)
 
 local ansi = {}
 

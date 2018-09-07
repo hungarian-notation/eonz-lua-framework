@@ -1,6 +1,6 @@
-local eonz 	= require "eonz"
-local Stream 	= require "eonz.lexer.stream"
-local Context 	= require "eonz.lexer.context"
+local eonz 	= require 'eonz'
+local Stream 	= require 'eonz.lexer.stream'
+local Context 	= require 'eonz.lexer.context'
 
 local GenericParser = eonz.class "eonz::lexer::GenericParser"
 do

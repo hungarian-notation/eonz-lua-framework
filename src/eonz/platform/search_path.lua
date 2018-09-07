@@ -1,5 +1,5 @@
-local WeightedAlternative 	= require "eonz.weighted-alternative"
-local options			= require "eonz.options"
+local WeightedAlternative 	= require 'eonz.weighted-alternative'
+local options			= require 'eonz.options'
 
 return function(Platform)
 

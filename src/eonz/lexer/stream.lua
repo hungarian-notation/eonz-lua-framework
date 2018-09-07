@@ -1,4 +1,4 @@
-local eonz 	= require "eonz"
+local eonz 	= require 'eonz'
 
 local Stream = eonz.class "eonz::lexer::Stream"
 do

@@ -1,9 +1,9 @@
-local eonz 		= require "eonz"
+local eonz 		= require 'eonz'
 
-local Stream 		= require "eonz.lexer.stream"
-local Context 		= require "eonz.lexer.context"
-local GenericParser 	= require "eonz.lexer.parser"
-local grammar		= require "eonz.json.grammar"
+local Stream 		= require 'eonz.lexer.stream'
+local Context 		= require 'eonz.lexer.context'
+local GenericParser 	= require 'eonz.lexer.parser'
+local grammar		= require 'eonz.json.grammar'
 
 local Parser = eonz.class {
 	name		= "eonz::json::JsonParser",

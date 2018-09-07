@@ -1,5 +1,5 @@
-local eonz 		= require "eonz"
-local Production 	= require "eonz.lexer.production"
+local eonz 		= require 'eonz'
+local Production 	= require 'eonz.lexer.production'
 
 local Grammar = eonz.class "eonz::lexer::Grammar"
 do

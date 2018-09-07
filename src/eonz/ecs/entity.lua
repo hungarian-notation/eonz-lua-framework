@@ -1,4 +1,4 @@
-local eonz = require "eonz"
+local eonz = require 'eonz'
 
 local Entity = eonz.class "eonz::ecs::Entity"
 do

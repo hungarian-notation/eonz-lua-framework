@@ -1,7 +1,7 @@
 local json = {
-	grammar = require "eonz.json.grammar",
-	parser  = require "eonz.json.parser",
-	Parser  = require "eonz.json.parser"
+	grammar = require 'eonz.json.grammar',
+	parser  = require 'eonz.json.parser',
+	Parser  = require 'eonz.json.parser'
 }
 
 function json.parse(src, opt)

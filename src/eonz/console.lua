@@ -1,4 +1,4 @@
-require "eonz.polyfill" (_G)
+require 'eonz.polyfill' (_G)
 
 local console 	= {}
 
@@ -26,6 +26,6 @@ function console.style(style, ...)
 	return string.join(...)
 end
 
-table.merge(console, require("eonz.ansi"))
+table.merge(console, require('eonz.ansi'))
 
 return console

@@ -1,5 +1,5 @@
 
-local options = require "eonz.options"
+local options = require 'eonz.options'
 
 local function equals_impl(a, b, recursive)
 	if rawequal (a, b) then

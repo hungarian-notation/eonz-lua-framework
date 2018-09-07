@@ -1,5 +1,5 @@
-local eonz 	= require "eonz"
-local Token 	= require "eonz.lexer.token"
+local eonz 	= require 'eonz'
+local Token 	= require 'eonz.lexer.token'
 
 local actions = {}
 

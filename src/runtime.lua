@@ -88,7 +88,7 @@ function rt.create_package(pack, package_path)
 
 	if pack.name == "eonz-core" then
 		rt.debug "registering with eonz core package"
-		local eonz 	= require "eonz"
+		local eonz 	= require 'eonz'
 		eonz['RT'] 	= rt
 	end
 end

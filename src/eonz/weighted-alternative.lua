@@ -2,7 +2,7 @@
 -- before the cross-platform path system is initialized. It must be entirely
 -- platform agnostic.
 
-local WeightedAlternative = require("eonz.objects").class "WeightedAlternative"
+local WeightedAlternative = require('eonz.objects').class "WeightedAlternative"
 do
 	function WeightedAlternative:__tostring()
 		return tostring(self.t):lower()

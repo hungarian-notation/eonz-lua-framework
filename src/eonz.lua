@@ -11,12 +11,12 @@ end
 
 function EONZ.configure(opt)
 
-	require("eonz.polyfill")()
+	require('eonz.polyfill')()
 
-	EONZ.options 	= require "eonz.options"
-	EONZ.objects 	= require "eonz.objects"
+	EONZ.options 	= require 'eonz.options'
+	EONZ.objects 	= require 'eonz.objects'
 	EONZ.class	= EONZ.objects.class
-	EONZ.platform 	= require("eonz.platform"):detect()
+	EONZ.platform 	= require('eonz.platform'):detect()
 
 	opt = EONZ.options.from(opt, {
 		configure_path 	= true,

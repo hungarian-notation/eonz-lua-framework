@@ -1,6 +1,6 @@
-local eonz 	= require "eonz"
-local actions	= require "eonz.lexer.actions"
-local Token 	= require "eonz.lexer.token"
+local eonz 	= require 'eonz'
+local actions	= require 'eonz.lexer.actions'
+local Token 	= require 'eonz.lexer.token'
 
 local Production = eonz.class "eonz::lexer::Production"
 do
