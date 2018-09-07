@@ -43,8 +43,25 @@ function options.from(value, defaults)
 		end
 	end
 
-	return merge_tables({}, defaults or {}, value)
+	return setmetatable(merge_tables({}, defaults or {}, value), options)
 
+end
+
+do options.__index = options
+	local CHECK_TYPES = { 'string', 'number', 'boolean', 'table', 'function' }
+
+	function options.check(opt, key)
+		return opt[key] or error(string.format("missing required option: '%s'", key), 3)
+	end
+
+	for i, check_type in pairs(CHECK_TYPES) do
+		local check_name = "check" .. check_type
+
+		options[check_name] = function(opt, key)
+			return (type(opt[key]) == check_type) and (opt[key])
+				or error(string.format("missing required option of type %s: '%s'", check_type, key), 3)
+		end
+	end
 end
 
 return options

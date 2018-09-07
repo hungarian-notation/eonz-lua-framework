@@ -1,5 +1,7 @@
 local eonz = require 'eonz'
 
+local info = require 'eonz.lexer.info'
+
 local Token = eonz.class "eonz::lexer::Token"
 do
 	Token.ERROR_TOKEN 		= 'error'
@@ -9,9 +11,7 @@ do
 		local instance = {
 			_error		= args.error and (args.production and args.production:id()) or args.error,
 			_production 	= not args.error and assert(args.production) or args.production or nil,
-			_start		= assert(args.start	),
-			_stop		= assert(args.stop	),
-			_source		= assert(args.source	),
+			_interval	= assert(args.interval),
 			_alternative	= not args.error and assert(args.alternative) or 1,
 			_text		= args.text,
 			_captures	= args.captures or {},
@@ -29,9 +29,13 @@ do
 
 		return Token {
 			production 	= self:production(),
-			start		= self:start(),
-			stop		= other:stop(),
-			source		= self:source(),
+
+			interval	= info.SourceInterval {
+				start 	= self:start(),
+				stop	= other:stop(),
+				source	= self:source()
+			},
+
 			captures	= table.join(self:captures(), other:captures()),
 			alternative	= -1,
 			context		= self:context()
@@ -41,9 +45,11 @@ do
 	function Token:virtualize()
 		return Token {
 			production 	= self:production(),
-			start		= self:start(),
-			stop		= self:start(),
-			source		= self:source(),
+			interval	= info.SourceInterval {
+				start 	= self:start(),
+				stop 	= self:start(),
+				source	= self:source()
+			},
 			captures	= {},
 			alternative	= -2,
 			context		= self:context()
@@ -54,9 +60,17 @@ do
 		return self._ctx
 	end
 
+	function Token:interval()
+		return self._interval
+	end
+
+	function Token:source()
+		return self:interval():source()
+	end
+
 	function Token:line_info()
-		if self._ctx and not self._line_info then
-			self._line_info = self:context():line_at(self:start())
+		if self:source() and not self._line_info then
+			self._line_info = self:source():line_at(self:start())
 		end
 
 		return self._line_info
@@ -67,7 +81,7 @@ do
 	end
 
 	function Token:line_position()
-		return self:line_info() and (self:start() - self:line_info().start + 1) or -1
+		return self:line_info() and (self:start() - self:line_info().interval:start() + 1) or -1
 	end
 
 	function Token:error()
@@ -131,11 +145,11 @@ do
 	Token.alt = Token.alternative
 
 	function Token:start()
-		return self._start
+		return self:interval():start()
 	end
 
 	function Token:stop()
-		return self._stop
+		return self:interval():stop()
 	end
 
 	function Token:len()
@@ -159,11 +173,9 @@ do
 		return "(" .. self:id() .. " \"" .. sanitized
 		.. "\""
 		.. (#self._captures > 0 and (" " .. table.tostring(self._captures)) or "")
+		.. " " .. self:interval():start_position():tostring(true)
+		.. " to " .. self:interval():stop_position():tostring(true)
 		.. ")"
-	end
-
-	function Token:source()
-		return self._source
 	end
 end
 

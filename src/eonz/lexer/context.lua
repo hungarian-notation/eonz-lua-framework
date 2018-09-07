@@ -1,15 +1,33 @@
 local eonz 		= require 'eonz'
 local Production 	= require 'eonz.lexer.production'
 local Token 		= require 'eonz.lexer.token'
+local info		= require 'eonz.lexer.info'
 
 local Context = eonz.class "eonz::lexer::Context"
 do
 	function Context.new(opt)
 		opt = eonz.options.from(opt)
 
+		if type(opt.source) == 'string' then
+			opt.text = opt.source
+			opt.source = nil
+		end
+
+
+		if not opt.source then
+			opt.source = info.Source {
+				text = opt:checkstring('text'),
+				name = opt.name or "unknown-source",
+				lang = opt.lang
+			}
+		end
+
+		assert(info.Source:is_instance(opt.source), 'source option must be an instance of eonz::info::Source')
+
 		return setmetatable({
 			_gmr 	= assert(opt.grammar, 'missing grammar from arguments table'),
-			_src	= assert(opt.text or opt.source_text or opt.source, 'missing source from arguments table'),
+			_src	= opt.source,
+
 			_pos	= opt.init or 0,
 			_tok	= {},
 			_mod	= { opt.mode },
@@ -24,58 +42,6 @@ do
 	function Context:display_for(id)
 		local production = self:production_for(id)
 		return production and production:display() or id
-	end
-
-	function Context:analyze_source()
-		if not self._lines then
-			local cursor 	= 1
-			local source 	= self._src
-			local lines 	= {}
-
-			while cursor < #source do
-				local n, nx = source:find("[\r]?[\n]", cursor)
-				n 	= n or #source + 1
-				nx 	= nx or n + 1
-
-				local line = {
-					index	= #lines + 1,
-					start 	= cursor,
-					stop 	= n-1
-				}
-
-				lines[line.index] = line
-
-				cursor = nx + 1
-			end
-			self._lines = lines
-		end
-	end
-
-	function Context:lines()
-		self:analyze_source()
-		return self._lines
-	end
-
-	function Context:line_at(i)
-		self:analyze_source()
-		i = i or self._pos
-
-		local lines = self:lines()
-
-		for j = 1, #lines do
-			local line = lines[j]
-			if line.stop > i then
-				return line
-			end
-		end
-
-		return nil
-	end
-
-	function Context:line_number(i)
-		i = i or self._pos
-		local info = self:line_at(i)
-		return info and info.index or nil
 	end
 
 	function Context:grammar()
@@ -165,8 +131,6 @@ do
 	end
 
 	function Context:accept(token)
-		token._line = self:line_number(token:start())
-
 		local npos = #self._tok + 1
 
 		self:insert_token(token, npos)
@@ -177,7 +141,7 @@ do
 				action(self, token)
 			end
 		end
-		
+
 		local lpos = #self._tok
 		return table.slice(self._tok, npos, lpos)
 	end

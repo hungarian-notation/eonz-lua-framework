@@ -5,7 +5,13 @@ local json = {
 }
 
 function json.parse(src, opt)
-	return json.Parser(src, opt):json()
+	opt.source = require('eonz.lexer.info').Source {
+		text = src,
+		name = opt.source_name or "json",
+		lang = json
+	}
+
+	return json.Parser(opt):json()
 end
 
 return json

@@ -14,7 +14,11 @@ local CONSTRUCTOR_NAMES		= { 'new', 	'__new'  }
 local INITIALIZER_NAMES		= { 'init', 	'__init' }
 
 local BaseObject 	= {}
-do BaseObject.__index = BaseObject
+do 	BaseObject.__index = BaseObject
+	BaseObject[CLASS_FIELD__NAME] 	= "eonz::BaseObject"
+	BaseObject[CLASS_FIELD__SUPER] 	= nil
+	BaseObject[CLASS_FIELD__CLASS]	= BaseObject
+
 	function BaseObject.resolve_own(T, keys)
 		if type(keys) == 'string' then
 			keys = { keys }
@@ -98,15 +102,54 @@ do BaseObject.__index = BaseObject
 		return constructor(...)
 	end
 
-	function BaseObject.get_class(T)
-		if not T then
-			error('value is not an instance of a class')
+	function BaseObject.is_class(T)
+		return type(T) == 'table' and rawequal(BaseObject, T) or not not rawget(T, CLASS_FIELD__CLASS)
+	end
+
+	function BaseObject.super(T)
+		T = BaseObject.get_class(T)
+
+		if not T or rawequal(BaseObject, T) then
+			return nil
+		else
+			return assert(rawget(T, CLASS_FIELD__SUPER))
 		end
-		return rawget(T, CLASS_FIELD__CLASS) or BaseObject.get_class(getmetatable(T))
+	end
+
+	function BaseObject.get_class(T)
+		return type(T) == 'table' and
+			((rawget(T, CLASS_FIELD__CLASS))
+				or (getmetatable(T) and BaseObject.get_class(getmetatable(T)))
+				or nil) or nil
 	end
 
 	function BaseObject.type_name(T)
 		return BaseObject.resolve_own(BaseObject.get_class(T), CLASS_FIELD__NAME)
+	end
+
+	function BaseObject.assignable_from(T, U)
+		T = BaseObject.get_class(T)
+		U = BaseObject.get_class(U)
+
+		if T == nil or U == nil then
+			return false
+		else
+			while U do
+				if T:is_instance(U) then
+					return true
+				else
+					U = U:super()
+				end
+			end
+
+			return false
+		end
+	end
+
+	function BaseObject.is_instance(T, U)
+		T = BaseObject.get_class(T)
+		U = BaseObject.get_class(U)
+		return T and rawequal(T, U)
 	end
 
 	BaseObject.__call = BaseObject.construct_instance

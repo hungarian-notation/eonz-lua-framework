@@ -7,7 +7,8 @@ do
 	function GenericParser:init(opt)
 		opt = eonz.options.from(opt)
 		self._ctx	= opt.context or Context { 	grammar = opt.grammar,
-								source 	= opt.source 	}
+								source 	= opt.source,
+								text	= opt.text 	}
 		self._stream	= nil
 		self._stack 	= {}
 		self._opt	= opt
@@ -174,16 +175,14 @@ do
 			if self:eof() then
 				bf:append("at end of file: ")
 			elseif next_token and ((not last_token) or (not opt.after)) then
-				bf:format("at %s at %d:%d:",
+				bf:format("at %s at %s:",
 					write_token(1),
-					next_token:line_number(),
-					next_token:line_position(),
+					tostring(next_token:interval():start_position()),
 					self:format_ids(1))
 			elseif last_token then
-				bf:format("after %s at %d:%d: ",
+				bf:format("after %s at %s: ",
 					write_token(-1),
-					last_token:line_number(),
-					last_token:line_position())
+					tostring(last_token:interval():stop_position()))
 			end
 		end
 

@@ -1,6 +1,9 @@
 local eonz 		= require "eonz"
 local Token 		= require "eonz.lexer.token"
+local info 		= require "eonz.lexer.info"
 local Production	= require "eonz.lexer.production"
+
+local Source		= info.Source
 
 tests["Production - general properties"] = function()
 
@@ -54,7 +57,11 @@ tests["Production:match()"] = function()
 	local text 		= Production("TEXT", 	"[%a]+")
 	local whitespace	= Production("WS",	"%s+")
 
-	local input = "\n\thello world\n"
+	local input = Source {
+		text = "\n\thello world\n",
+		name = "mock input"
+	}
+
 	local token
 
 	assert_not(text:match(input, 1))
@@ -119,8 +126,10 @@ tests["Production:match() with alternatives"] = function()
 		"([%d]+)"
 	})
 
-	local m1 = assert_exists(p:match("\"this is a string\"", 1))
-	local m2 = assert_exists(p:match("2024", 1))
+
+
+	local m1 = assert_exists(p:match(Source { text="\"this is a string\"" }, 1))
+	local m2 = assert_exists(p:match(Source { text="2024" }, 1))
 
 	assert_equal(1, m1:alternative())
 	assert_equal(1, m1:alt())

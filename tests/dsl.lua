@@ -44,7 +44,7 @@ local function expected_was(ex, was)
 end
 
 function dsl.assert_error(...)
-	local expected_message, function_args, target
+	local validation, function_args, target
 
 	local args = {...}
 
@@ -57,11 +57,14 @@ function dsl.assert_error(...)
 
 	for i,arg in ipairs(args) do
 		if type(arg) == 'string' then
-			assert(not message)
-			expected_message = arg
+			assert(not validation)
+			validation = { is = arg }
 		end
 
-		if type(arg) == 'table' then
+		if type(arg) == 'table' and type(args[i+1]) == 'table' then
+			assert(not validation)
+			validation = arg
+		elseif type(arg) == 'table' then
 			assert(not function_args)
 			function_args = arg
 		end
@@ -87,9 +90,17 @@ function dsl.assert_error(...)
 
 	if status then
 		dsl.fail(("function did not raise an error"))
-	elseif expected_message and expected_message ~= actual_message then
-		dsl.fail("error message did not match the expected value",
-			expected_was(expected_message, actual_message))
+	elseif validation then
+		if validation.is and actual_message ~= validation.is then
+			dsl.fail("error message did not match the expected value",
+				expected_was(validation.is, actual_message))
+		elseif validation.contains then
+			local index = string.find(actual_message, validation.contains, 1, true)
+			if not index then
+				dsl.fail("error message did not contain the expected string",
+					expected_was(validation.contains, actual_message))
+			end
+		end
 	end
 end
 

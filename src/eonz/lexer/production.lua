@@ -1,6 +1,7 @@
 local eonz 	= require 'eonz'
 local actions	= require 'eonz.lexer.actions'
 local Token 	= require 'eonz.lexer.token'
+local info	= require 'eonz.lexer.info'
 
 local Production = eonz.class "eonz::lexer::Production"
 do
@@ -118,13 +119,15 @@ do
 		return self._predicates
 	end
 
-	function Production:try_match(source_text, init, pattern_index)
-		return { string.match(source_text, self:compile()[pattern_index], init) }
+	function Production:try_match(source, init, pattern_index)
+		return { string.match(source:text(), self:compile()[pattern_index], init) }
 	end
 
-	function Production:match(source_text, init, ctx)
+	function Production:match(source, init, ctx)
+		assert(info.Source:is_instance(source))
+
 		for alternative = 1, #self:patterns() do
-			local groups = self:try_match(source_text, init, alternative)
+			local groups = self:try_match(source, init, alternative)
 
 			if #groups ~= 0 and groups[1] then
 				local start 		= groups[1]
@@ -135,9 +138,13 @@ do
 				return Token {
 					production 	= self,
 					text 		= token_text,
-					start 		= start,
-					stop 		= stop,
-					source 		= source_text,
+
+					interval	= info.SourceInterval {
+						start = start,
+						stop = stop,
+						source = source
+					},
+
 					captures 	= captures,
 					alternative	= alternative,
 					context		= ctx,
