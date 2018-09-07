@@ -2,7 +2,8 @@
 -- before the cross-platform path system is initialized. It must be entirely
 -- platform agnostic.
 
-local options = {}
+local merge_tables 	= require('eonz.polyfill.detail.merge')
+local options 		= {}
 
 -- options can be supplied as a table or a single string
 -- if supplied as a string, it is split into flags on any
@@ -42,7 +43,7 @@ function options.from(value, defaults)
 		end
 	end
 
-	return table.merge({}, defaults or {}, value)
+	return merge_tables({}, defaults or {}, value)
 
 end
 

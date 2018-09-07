@@ -24,7 +24,7 @@ tests['parser validation suite'] = function()
 	end
 
 	for i, mock in ipairs(mock_input) do
-		local parser = json.parser(mock[1], { tolerant = false, relaxed = false })
+		local parser = json.parser({ source = mock[1], tolerant = false, relaxed = false })
 
 
 		for i, token in ipairs(parser:stream():list()) do

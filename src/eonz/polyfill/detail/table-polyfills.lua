@@ -142,17 +142,7 @@ local function join_impl(...)
 	return array_impl(result)
 end
 
-local function merge_impl(t, ...)
-	local tables = {...}
-
-	for i, m in ipairs(tables) do
-		for k, v in pairs(m) do
-			t[k] = v
-		end
-	end
-
-	return t
-end
+local merge_impl = require('eonz.polyfill.detail.merge')
 
 local function copy_impl(t)
 	local copy = {}

@@ -27,8 +27,14 @@ function EONZ.configure(opt)
 
 	if opt.configure_path then
 
+		if not opt.path_roots then
+			opt.path_roots = {}
+
+			local on_path = platform.explode_paths()
+		end
+
 		local p 	= EONZ.platform
-		local roots 	= table.copy(opt.path_roots)
+		local roots 	= table.copy(opt.path_roots or {})
 
 		if EONZ.RT then
 			EONZ.debug "expanding package roots"
@@ -54,7 +60,7 @@ function EONZ.configure(opt)
 
 	EONZ.__index = EONZ.__runtime_index
 
-	return
+	return EONZ
 
 end
 

@@ -1,24 +1,21 @@
-local eonz 	= require "eonz"
+local eonz 		= require "eonz"
 
-local Stream 	= require "eonz.lexer.stream"
-local Context 	= require "eonz.lexer.context"
-local grammar	= require "eonz.json.grammar"
+local Stream 		= require "eonz.lexer.stream"
+local Context 		= require "eonz.lexer.context"
+local GenericParser 	= require "eonz.lexer.parser"
+local grammar		= require "eonz.json.grammar"
 
-local Parser = eonz.class "eonz::json::Parser"
+local Parser = eonz.class {
+	name		= "eonz::json::JsonParser",
+	extends		= GenericParser
+}
 do
-	function Parser.new(json, opt)
-		opt = eonz.options.from(opt)
-		return setmetatable({
-			_json 	= json,
-			_ctx	= Context { grammar = grammar, source = json },
-			_stream	= nil,
-			_stack 	= {},
-			_opt	= opt
-		}, Parser)
-	end
+	function Parser:init(opt)
+		opt = eonz.options.from(opt, {
+			grammar = require('eonz.json.grammar')
+		})
 
-	function Parser:options()
-		return self._opt
+		GenericParser.init(self, opt)
 	end
 
 	function Parser:is_relaxed()
@@ -27,185 +24,6 @@ do
 
 	function Parser:is_tolerant()
 		return self:options().tolerant
-	end
-
-	function Parser:context()
-		return self._ctx
-	end
-
-	function Parser:stream()
-		if not self._stream then
-			self._ctx:consume()
-			self._stream = Stream(self._ctx:tokens())
-		end
-
-		return self._stream
-	end
-
-	function Parser:eof()
-		return self:stream():eof()
-	end
-
-	function Parser:sees(id)
-		if self:eof() then
-			return id == nil
-		elseif id == nil then
-			return false
-		end
-
-		return self:syntax_assert(self:syntax_assert(self, 'self was nil'):look(), "self:look() returned nil"):id(id)
-	end
-
-	function Parser:look(i)
-		return self:syntax_assert(self:syntax_assert(self, 'self was nil'):stream(), 'self:stream() returned nil'):look(i)
-	end
-
-	function Parser:format_ids(ids, spell_out)
-		local token_offset
-
-		if type(ids) == 'number' then
-			token_offset = ids
-			ids = nil
-		end
-
-		if token_offset then
-			local token = self:look(token_offset)
-			ids = { token:error() and (token:production() and token:production():display() or "error token") or token:id() }
-		elseif not ids then
-			return 'end of file'
-		end
-
-		if type(ids) ~= 'table' then
-			ids = { ids }
-		end
-
-		local bf = string.builder()
-
-		for i = 1, #ids do
-			if i ~= 1 then
-				bf:append(", ")
-			end
-
-			local display = self:context():display_for(ids[i])
-
-			if spell_out then
-				bf:format("%s token", display)
-			elseif token_offset then
-				bf:format("%s", self:look(token_offset):text())
-			else
-				bf:format("%s", display)
-			end
-		end
-
-		return tostring(bf)
-	end
-
-	function Parser:consume(id)
-		self:expect(id)
-		self:event('consuming ', id)
-		return self:syntax_assert(self:try_consume(id))
-	end
-
-	function Parser:try_consume(id)
-		if id == nil or self:sees(id) then
-			return self:stream():consume()
-		else
-			return nil
-		end
-	end
-
-	function Parser:expect(ids, message, opt)
-		opt = eonz.options.from(opt)
-		if not self:sees(ids) then
-			if not message and not ids then
-				message = "expected end of file"
-			end
-			self:syntax_error(message or ('expected '
-				.. ((type(ids) == 'table' and #ids > 1) and 'one of: ' or '')
-				.. self:format_ids(ids)
-				.. ' at this position'), opt)
-		end
-	end
-
-	function Parser:expect_not(ids, message, opt)
-		opt = eonz.options.from(opt)
-		if self:sees(ids) then
-			self:syntax_error(message or ('did not expect '
-				.. self:format_ids(self:look() and self:look():id())
-				.. ' at this position'), opt)
-		end
-	end
-
-	function Parser:error_after()
-		self._error_after = true
-	end
-
-	local function format_position(token)
-		return string.format("%s:%s",
-		token:line_number(),
-		token:line_position())
-	end
-
-	function Parser:syntax_error(message, opt)
-		opt = eonz.options.from(opt)
-
-		local bf = string.builder()
-		local rule = self._stack[#self._stack]
-		local next_token = self:look(1)
-		local last_token = self:look(-1)
-
-		local function write_token(offset)
-			local token = self:look(offset)
-
-			if not token:error() and token:production():display() == token:id() then
-				return string.format("%s (%s)",
-					self:format_ids(offset, true),
-					self:format_ids(offset))
-			elseif token:error() and token:production() then
-				return token:production():display()
-			elseif token:error() then
-				return "error token"
-			else
-				return self:format_ids(offset, true)
-			end
-		end
-
-		if opt.location then
-			bf:format("%s:", opt.location)
-		elseif not opt.skip_location then
-			if rule then
-				bf:format("while parsing JSON %s: ", rule)
-			end
-		end
-
-		if not opt.location and not opt.skip_position then
-			if self:eof() then
-				bf:append("at end of file: ")
-			elseif next_token and ((not last_token) or (not opt.after)) then
-				bf:format("at %s at %d:%d:",
-					write_token(1),
-					next_token:line_number(),
-					next_token:line_position(),
-					self:format_ids(1))
-			elseif last_token then
-				bf:format("after %s at %d:%d: ",
-					write_token(-1),
-					last_token:line_number(),
-					last_token:line_position())
-			end
-		end
-
-		bf:append("\n\t")
-		bf:append(message)
-		eonz.error(tostring(bf))
-	end
-
-	function Parser:syntax_assert(test, ...)
-		if not test then
-			self:syntax_error(...)
-		else
-			return test
-		end
 	end
 
 	function Parser:json()
@@ -220,15 +38,15 @@ do
 	function Parser:value(simple)
 		self:enter_rule "value"
 
-		if self:sees('constant') then
+		if self:peek('constant') then
 			return self:leave(self:constant())
-		elseif not simple and self:sees('array.start') then
+		elseif not simple and self:peek('array.start') then
 			return self:leave(self:array())
-		elseif not simple and self:sees('object.start') then
+		elseif not simple and self:peek('object.start') then
 			return self:leave(self:object())
-		elseif self:sees({ 'string.start', 'string.single.start', 'error.unquoted.start' }) then
+		elseif self:peek({ 'string.start', 'string.single.start', 'error.unquoted.start' }) then
 			return self:leave(self:string())
-		elseif self:sees('number') then
+		elseif self:peek('number') then
 			return self:leave(self:number())
 		else
 			self:syntax_error(VALUE_EXPECT_MESSAGE)
@@ -276,11 +94,11 @@ do
 		local stop_rule 	= 'string.stop'
 		local character_rule	= 'string.character'
 
-		if self:is_tolerant() and self:sees('error.unquoted.start') then
+		if self:is_tolerant() and self:peek('error.unquoted.start') then
 			stop_rule = { 'error.unquoted.stop' }
 			character_rule	= 'error.unquoted'
 			self:consume('error.unquoted.start')
-		elseif self:is_relaxed() and self:sees('string.single.start') then
+		elseif self:is_relaxed() and self:peek('string.single.start') then
 			stop_rule 	= 'string.single.stop'
 			character_rule	= 'string.single.character'
 			self:consume('string.single.start')
@@ -290,18 +108,18 @@ do
 			self:consume('string.start')
 		end
 
-		while not self:sees(stop_rule) do
+		while not self:peek(stop_rule) do
 			self:expect_not(nil, 'reached end of file while in string', {
-				location = "while parsing string at " .. format_position(start)
+				location = "while parsing string at " .. self.format_position(start)
 			})
 
-			if self:sees('error.string.linebreak') then
+			if self:peek('error.string.linebreak') then
 				self:syntax_error("Strings may not contain line breaks.", {
-					location = "while parsing string at " .. format_position(start)
+					location = "while parsing string at " .. self.format_position(start)
 				})
 			end
 
-			if self:sees('string.escape') then
+			if self:peek('string.escape') then
 				local escape = self:consume('string.escape')
 
 				if escape:alt(1) then
@@ -326,9 +144,9 @@ do
 		local values = {}
 		local i = 1
 
-		while not self:sees('array.stop') do
+		while not self:peek('array.stop') do
 			if self:is_tolerant() then
-				repeat until not self:try_consume('sep.list')
+				repeat until not self:consume_optional('sep.list')
 			end
 
 			values[i] = self:value()
@@ -336,12 +154,12 @@ do
 
 			self:expect_not('sep.pair', 'key-value pairs are not allowed in an array.\n\tDid you mean to use { } instead of [ ]?')
 
-			if not self:try_consume('sep.list') then
+			if not self:consume_optional('sep.list') then
 				break
 			end
 
 			if self:is_tolerant() then
-				repeat until not self:try_consume('sep.list')
+				repeat until not self:consume_optional('sep.list')
 			end
 
 			if not self:is_tolerant() and not self:is_relaxed() then
@@ -360,9 +178,9 @@ do
 
 		local object = {}
 
-		while not self:sees('object.stop') do
+		while not self:peek('object.stop') do
 			if self:is_tolerant() then
-				repeat until not self:try_consume('sep.list')
+				repeat until not self:consume_optional('sep.list')
 			end
 
 			self:expect_not(nil)
@@ -386,12 +204,12 @@ do
 
 			object[key] = value
 
-			if not self:try_consume('sep.list') then
+			if not self:consume_optional('sep.list') then
 				break
 			end
 
 			if self:is_tolerant() then
-				repeat until not self:try_consume('sep.list')
+				repeat until not self:consume_optional('sep.list')
 			end
 
 			if not self:is_tolerant() and not self:is_relaxed() then
@@ -404,7 +222,7 @@ do
 
 		return self:leave(object)
 	end
-
+	--[[
 	function Parser:log(...)
 		--io.write(string.join(...))
 	end
@@ -436,6 +254,7 @@ do
 		self:transition('leaving rule: ', leaving, ' (rtype:', type(({...})[1]), ')')
 		return ...
 	end
+	--]]
 end
 
 return Parser
