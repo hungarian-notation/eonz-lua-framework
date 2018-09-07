@@ -1,8 +1,21 @@
-local eonz	= require 'eonz'
+local eonz = require 'eonz'
 
-local Source 		= eonz.class { name = 'eonz::lexer::info::Source' 		}
-local SourceInterval 	= eonz.class { name = 'eonz::lexer::info::SourceInterval' 	}
-local SourcePosition 	= eonz.class { name = 'eonz::lexer::info::SourcePosition' 	}
+local Source = eonz.class {
+	name 	= 'eonz::lexer::info::Source'
+}
+
+local SourceInterval = eonz.class {
+	name 	= 'eonz::lexer::info::SourceInterval'
+}
+
+local SourceLine = eonz.class {
+	name 	= 'eonz::lexer::info::SourceLine',
+	extends	= SourceInterval
+}
+
+local SourcePosition = eonz.class {
+	name 	= 'eonz::lexer::info::SourcePosition'
+}
 
 do -- Source
 	function Source:__init(opt)
@@ -43,18 +56,14 @@ do -- Source
 			n 	= n or string.len(text) + 1
 			nx 	= nx or n + 1
 
-			local line_info = {
+			local line_info = SourceLine {
 				index		= #lines + 1,
 				start		= cursor,
 				stop		= n,
-				interval 	= SourceInterval {
-					source	= self,
-					start 	= cursor,
-					stop 	= n
-				}
+				source		= self,
 			}
 
-			lines[line_info.index] = line_info
+			lines[line_info:index()] = line_info
 
 			cursor = nx + 1
 		end
@@ -74,7 +83,7 @@ do -- Source
 		local lines = self:lines()
 
 		for j = 1, #lines do
-			if lines[j].interval:stop() > i then
+			if lines[j]:stop() > i then
 				--print(string.format("offset %d on line %d which runs from %d to %d",
 				--	i, j, lines[j].interval:start(), lines[j].interval:stop()))
 				return lines[j]
@@ -86,7 +95,7 @@ do -- Source
 
 	function Source:line_number_at(i)
 		local info = self:line_at(i)
-		return info and info.index or nil
+		return info and info:index() or nil
 	end
 end
 
@@ -108,12 +117,12 @@ do -- SourcePosition
 
 	function SourcePosition:line()
 		return not self:line_info() and -1 or
-			(self:line_info().index)
+			(self:line_info():index())
 	end
 
 	function SourcePosition:position()
 		return not self:line_info() and -1 or
-			(self:offset() - self:line_info().interval:start() + 1)
+			(self:offset() - self:line_info():start() + 1)
 	end
 
 	function SourcePosition:offset()
@@ -137,6 +146,7 @@ end
 
 do -- SourceInterval
 	function SourceInterval:__init(opt)
+		SourceInterval:__super { self, opt }
 		opt = eonz.options.from(opt)
 		self._start	= opt:checknumber 'start'
 		self._stop	= opt:checknumber 'stop'
@@ -170,7 +180,34 @@ do -- SourceInterval
 	end
 end
 
+do -- SourceLine
+	function SourceLine:__init(opt)
+		opt = eonz.options.from(opt)
+		SourceLine:__super { self, opt }
+		self._line = opt.line or opt.index
+	end
+
+	--function SourceLine.interval()
+	--	return self
+	--end
+
+	function SourceLine:number()
+		return self._line
+	end
+
+	function SourceLine:tostring()
+		return string.format("%s:%s", self:source():name(), self:number())
+	end
+
+	SourceLine.line 	= SourceLine.number
+	SourceLine.line_number 	= SourceLine.number
+	SourceLine.index 	= SourceLine.number
+	SourceLine.__tostring	= SourceLine.tostring
+end
+
 return {
 	Source		= Source,
-	SourceInterval 	= SourceInterval
+	SourceInterval 	= SourceInterval,
+	SourceLine	= SourceLine,
+	SourcePosition	= SourcePosition
 }

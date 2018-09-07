@@ -73,19 +73,8 @@ local function index_value(index, table_length)
 	end
 end
 
-local function index_of_impl(t, item)
-	for i, value in ipairs(t) do
-		if value == item then
-			return i
-		end
-	end
-
-	return nil
-end
-
-local function contains_impl(t, item)
-	return index_of_impl(t, item) ~= nil
-end
+local index_of_impl = require 'eonz.polyfill.detail.index_of'
+local contains_impl = require 'eonz.polyfill.detail.contains'
 
 local function slice_impl(t, from_index, to_index)
 	local copy, count, offset

@@ -81,7 +81,7 @@ do
 	end
 
 	function Token:line_position()
-		return self:line_info() and (self:start() - self:line_info().interval:start() + 1) or -1
+		return self:line_info() and (self:start() - self:line_info():start() + 1) or -1
 	end
 
 	function Token:error()
