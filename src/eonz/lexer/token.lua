@@ -84,7 +84,7 @@ do
 	end
 
 	function Token:line_number()
-		return self:line_info() and (self:line_info().index) or -1
+		return self:line_info() and (self:line_info():index()) or -1
 	end
 
 	function Token:line_position()
