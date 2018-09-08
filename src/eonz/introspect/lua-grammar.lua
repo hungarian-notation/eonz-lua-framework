@@ -37,12 +37,23 @@ local ALTS_NUMBER		= {
 }
 
 local FRAG_COMMENT		= "%-%-"
+
 local FRAG_LEFT_BRACKET 	= "%[(%=*)%[()"
 local FRAG_RIGHT_BRACKET 	= "()%](%=*)%]"
+
+-- Empty captures in the bracket fragments will set captures #2 and #3 of
+-- the produced bracket token with the source offsets of the content INSIDE
+-- the brackets.
 
 local function start_brackets()
 	return function (ctx, tok)
 		actions.push_mode("brackets")(ctx, tok)
+
+		-- Comments and strings are handled by the same bracket
+		-- matching rules. All content will be merged into the token
+		-- that pushed the brackets mode onto the stack. Bracket
+		-- variants are matched according to the length of the
+		-- first capture.
 	end
 end
 
@@ -50,6 +61,8 @@ return Grammar {
 
 	{	'keyword.break', 	'break' 	},
 	{	'keyword.goto',		'goto'		},
+	{	'keyword.for',		'for'		},
+	{	'keyword.in',		'in'		},
 	{	'keyword.do',		'do'		},
 	{	'keyword.end',		'end'		},
 	{	'keyword.while',	'while'		},
@@ -65,25 +78,27 @@ return Grammar {
 	{	'keyword.literal',	{'nil', 'false', 'true'}},
 
 	{
-		'identifier',
-		FRAG_IDENTIFIER
-	},
-
-	{
-		'operator.unary',
+		'operator.nary',
 		{
-			"%-", "not", "%#", "%~"
+			'%-', '%~'
 		}
 	},
 
 	{
 		'operator.binary',
 		{
-			"%+", "%-", "%*", "%/%/", "%/", "%^", "%%",
+			"%+", --[["%-",]] "%*", "%/%/", "%/", "%^", "%%",
 			"%&", "%|", "%>%>", "%<%<",
 			"%.%.",
 			"%<%=", "%<", "%>%=", "%>", "%=%=", "%~%=",
-			"%~"
+			--[["%~",]] "and", "or"
+		}
+	},
+
+	{
+		'operator.unary',
+		{
+			--[["%-",]] "not", "%#", --[["%~"]]
 		}
 	},
 
@@ -96,13 +111,19 @@ return Grammar {
 
 	{
 		'identifier.label',
-		"::" .. "%s?" .. "(" .. FRAG_IDENTIFIER .. ")" .. "%s?" .. "::"
+		"::" .. "%s*" .. "(" .. FRAG_IDENTIFIER .. ")" .. "%s*" .. "::"
 	},
 
 	{
 		'numeral',
 		ALTS_NUMBER
 	},
+
+	{
+		'identifier',
+		FRAG_IDENTIFIER
+	},
+
 
 	{ '{', "%{" },
 	{ '}', "%}" },
@@ -121,14 +142,33 @@ return Grammar {
 
 	{
 		'comment.line',
+
 		{
+			-- poisoned alternative, this never produces a token
 			FRAG_COMMENT .. FRAG_LEFT_BRACKET,
+
+			-- actual production
 			FRAG_COMMENT .. "[^\r\n]*"
 		},
 
 		predicates = {
 			function (ctx, tok)
-				print ("comment: ", tok:alt())
+
+				-- if we just used the actual pattern for this
+				-- production, it would override any actual
+				-- multiline comments because this rule consumes
+				-- all characters till the end of the line, and
+				-- the produced token would be longer than the
+				-- correct multi-line comment token.
+
+				-- To correct this, we insert an alternative
+				-- that matches multi-line comments. Alternatives
+				-- are matched first-come-first-served, so
+				-- the shorter alternative will be matched
+				-- because it is ordered before the longer
+				-- alternative. This predicate detects a
+				-- match of that alternative and poisons the
+				-- production if one such match is detected.
 
 				if tok:alt(1) then
 					return false, false
@@ -136,7 +176,9 @@ return Grammar {
 					return true
 				end
 			end
-		}
+		},
+
+		skip = true
 	},
 
 	-- brackets
@@ -157,16 +199,33 @@ return Grammar {
 		mode 	= 'brackets',
 
 		actions = {
+
 			actions.merge(),
-			actions.pop_mode()
+			actions.pop_mode(),
+
+			function (ctx, tok)
+				if ctx:tokens(-1):id('comment.multiline') then
+					actions.skip()(ctx)
+				end
+			end
+
 		},
 
 		predicates = {
 			function (ctx, tok)
+
 				local bracket 	= ctx:tokens(-1)
 				local level 	= string.len(bracket:captures(1))
 				local my_level	= string.len(tok:captures(2))
+
+				-- Since captures are preserved through merges,
+				-- all we have to do here is check the first
+				-- capture of the token at the top of the stack
+				-- to make sure our closing bracket is really
+				-- a match for our opening bracket.
+
 				return level == my_level
+
 			end
 		}
 	},
@@ -191,13 +250,14 @@ return Grammar {
 	{
 		'string.escape',
 		"[\\](.)",
-		modes = { 'string.single', 'string.double' }
+		modes 	= { 'string.single', 'string.double' },
+		merge	= true,
 	},
 
 	-- single quote string
 
 	{
-		'string.single.start',
+		'string.single',
 		"'",
 		push_mode = 'string.single'
 	},
@@ -206,12 +266,13 @@ return Grammar {
 		'string.single.char',
 		"[^'\r\n]",
 		mode 		= 'string.single',
-		merge_alike	= true
+		merge		= true
 	},
 
 	{
 		'string.single.stop',
 		"'",
+		merge		= true,
 		mode = 'string.single',
 		pop_mode = true
 	},
@@ -219,7 +280,7 @@ return Grammar {
 	-- double quote string
 
 	{
-		'string.double.start',
+		'string.double',
 		"\"",
 		push_mode = 'string.double'
 	},
@@ -228,13 +289,14 @@ return Grammar {
 		'string.double.char',
 		"[^\"\r\n]",
 		mode 		= 'string.double',
-		merge_alike	= true
+		merge		= true
 	},
 
 	{
 		'string.double.stop',
 		"\"",
 		mode = 'string.double',
+		merge	= true,
 		pop_mode = true
 	}
 }
