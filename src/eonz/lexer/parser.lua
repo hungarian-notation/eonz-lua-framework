@@ -11,7 +11,9 @@ do
 								text	= opt.text 	}
 		self._stream	= nil
 		self._stack 	= {}
+		self._trail	= {}
 		self._opt	= opt
+		self._error	= nil
 	end
 
 	function GenericParser:options(name)
@@ -38,14 +40,14 @@ do
 		return self:stream():eof()
 	end
 
-	function GenericParser:peek(id)
+	function GenericParser:peek(id, offset)
 		if self:eof() then
 			return id == nil
 		elseif id == nil then
 			return false
 		end
 
-		return self:syntax_assert(self:syntax_assert(self, 'self was nil'):look(), "self:look() returned nil"):id(id)
+		return self:syntax_assert(self:syntax_assert(self, 'self was nil'):look(offset), "looking past end of file"):id(id)
 	end
 
 	function GenericParser:look(i)
@@ -93,8 +95,9 @@ do
 	end
 
 	function GenericParser:consume(id)
+		if not id then id = self:look(1):id() end
 		self:expect(id)
-		self:event('consuming ', id)
+		self:event('consuming ', self:look(1):id())
 		return self:syntax_assert(self:consume_optional(id))
 	end
 
@@ -107,7 +110,11 @@ do
 	end
 
 	function GenericParser:expect(ids, message, opt)
-		opt = eonz.options.from(opt)
+		opt = eonz.options.from(opt, {
+			error_type 	= 'error.syntax.expectation',
+			error_expected	= ids,
+			error_position	= self:stream():index()
+		})
 
 		if not self:peek(ids) then
 			if not message and not ids then
@@ -134,6 +141,15 @@ do
 		return string.format("%s:%s",
 		token:line_number(),
 		token:line_position())
+	end
+
+	function GenericParser:error()
+		return self._error
+	end
+
+	function GenericParser:throw_error(message, error_info)
+		self._error = error_info
+		eonz.error(message)
 	end
 
 	function GenericParser:syntax_error(message, opt)
@@ -167,7 +183,7 @@ do
 			bf:format("%s:", opt.location)
 		elseif not opt.skip_location then
 			if rule then
-				bf:format("while parsing JSON %s: ", rule)
+				bf:format("while parsing %s: ", rule)
 			end
 		end
 
@@ -188,7 +204,12 @@ do
 
 		bf:append("\n\t")
 		bf:append(message)
-		eonz.error(tostring(bf))
+
+		self:throw_error(tostring(bf), {
+			message 	= tostring(bf),
+			type 		= opt.error_type or "error.syntax.general",
+			position 	= self:stream():index()
+		})
 	end
 
 	function GenericParser:syntax_assert(test, ...)
@@ -220,19 +241,34 @@ do
 		self:log("\n")
 	end
 
+	function GenericParser:alternative(...)
+		self:event('considering alternative: ', ...)
+		self._stack[#self._stack].alternative = string.join(...)
+	end
+
 	function GenericParser:enter_rule(name)
 		if #self._stack == 0 then
 			self:event()
 		end
 
 		self:transition('in rule: ', name)
-		table.insert(self._stack, name)
+		table.insert(self._stack, { name=name, alternative=nil })
+		self._trail = {}
 	end
 
 	function GenericParser:leave(...)
 		local leaving = table.remove(self._stack)
 		self:transition('leaving rule: ', leaving, ' (rtype:', type(({...})[1]), ')')
+		table.insert(self._trail, leaving)
 		return ...
+	end
+
+	function GenericParser:stack(i)
+		return not i and self._stack or self._stack[#self._stack + 1 - i]
+	end
+
+	function GenericParser:trail(i)
+		return not i and self._trail or self._trail[#self._trail + 1 - i]
 	end
 end
 
