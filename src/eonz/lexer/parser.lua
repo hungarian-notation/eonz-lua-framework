@@ -183,7 +183,7 @@ do
 			bf:format("%s:", opt.location)
 		elseif not opt.skip_location then
 			if rule then
-				bf:format("while parsing %s: ", rule)
+				bf:format("while parsing %s: ", tostring(rule))
 			end
 		end
 
