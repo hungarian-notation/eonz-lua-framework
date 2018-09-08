@@ -19,18 +19,28 @@ function actions.pop_mode()
 	end
 end
 
+local function merge_impl(ctx, tok)
+	local t1 = ctx:tokens(-2)
+	local t2 = ctx:tokens(-1)
+
+	local result = Token.merge(t1, t2)
+	ctx:remove_token()
+	ctx:remove_token()
+	ctx:insert_token(result)
+end
+
+function actions.merge()
+	return merge_impl
+end
+
 function actions.merge_alike()
 	-- merges the top two tokens if they have the same id
 
 	return function (ctx, tok)
 		local t1 = ctx:tokens(-2)
 		local t2 = ctx:tokens(-1)
-
 		if t1:id() == t2:id() then
-			local result = Token.merge(t1, t2)
-			ctx:remove_token()
-			ctx:remove_token()
-			ctx:insert_token(result)
+			merge_impl(ctx, tok)
 		end
 	end
 end
