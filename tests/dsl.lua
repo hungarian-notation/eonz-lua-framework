@@ -4,6 +4,14 @@ local styles 	= require('console-style')
 local dsl = {}
 local types = { 'nil', 'number', 'boolean', 'string', 'table', 'function', 'thread', 'userdata' }
 
+function dsl.show_progress(a, b)
+	local progress = (a / (b or 1)) * 100
+	local tag = (string.format("[ %3.f%% ]", progress))
+	io.write(tag)
+	io.write(console.move_cursor(-string.len(tag), 0))
+	io.flush()
+end
+
 function dsl.fail(message, rest)
 
 	message = message:gsub("«/", 	console.apply(styles.type))
@@ -131,7 +139,7 @@ function dsl.assert_deep_equals(expected, actual, message)
 	return actual
 end
 
-function dsl.assert(actual, variable)
+function dsl.assert(actual, message)
 	if not actual then
 		dsl.fail((message or "expression did not evaluate to true or a \"true\" value"),
 			show_value('was', actual))
@@ -139,7 +147,7 @@ function dsl.assert(actual, variable)
 	return actual
 end
 
-function dsl.assert_not(actual, variable)
+function dsl.assert_not(actual, message)
 	if not not actual then
 		dsl.fail((message or "expression did not evaluate to «false» or «nil»"),
 			show_value('was', actual))
@@ -147,7 +155,7 @@ function dsl.assert_not(actual, variable)
 	return actual
 end
 
-function dsl.assert_true(actual, variable)
+function dsl.assert_true(actual, message)
 	if type(actual) ~= 'boolean' or actual == false then
 		dsl.fail((message or "expression did not evaluate to «/boolean/» «true»"),
 			show_value('was', actual))
@@ -155,7 +163,7 @@ function dsl.assert_true(actual, variable)
 	return actual
 end
 
-function dsl.assert_false(actual, variable)
+function dsl.assert_false(actual, message)
 	if type(actual) ~= 'boolean' or actual == true then
 		dsl.fail((message or "expression did not evaluate to boolean false"),
 			show_value('was', actual))

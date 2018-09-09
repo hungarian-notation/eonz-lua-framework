@@ -10,6 +10,10 @@ local console 	= {}
 	On linux, the eonz.ansi module is merged on top of this module.
 --]]
 
+function console.move_cursor(x, y)
+	return ""
+end
+
 function console.color()
 	return ""
 end
