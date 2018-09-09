@@ -183,7 +183,7 @@ do
 			bf:format("%s:", opt.location)
 		elseif not opt.skip_location then
 			if rule then
-				bf:format("while parsing %s: ", tostring(rule))
+				bf:format("while parsing %s: ", tostring(rule.name))
 			end
 		end
 
@@ -221,7 +221,7 @@ do
 	end
 
 	function GenericParser:log(...)
-		if self:options('logging') == true then
+		if self:options('logging') and type(self:options('logging')) ~= 'function' then
 			io.write(string.join(...))
 		elseif self:options('logging') then
 			self:options('logging')(...)
@@ -256,10 +256,34 @@ do
 		self._trail = {}
 	end
 
+	-- logging_return_value_decorator
+
+	local function default_retvaldec(retval)
+		return tostring(retval)
+	end
+
 	function GenericParser:leave(...)
 		local leaving = table.remove(self._stack)
-		self:transition('leaving rule: ', leaving, ' (rtype:', type(({...})[1]), ')')
+
+
+		if self:options('logging') == 'full' then
+
+
+			self:transition(';')
+			local retval = ({...})[1]
+
+			self:transition('; generated: ' .. (self:options("logging_return_value_decorator") or default_retvaldec)(retval))
+			self:transition(';')
+			self:transition(';     after: ' .. tostring(self:look(-1)))
+		end
+
+
+		self:transition('leaving rule: ', leaving.name, ' (rtype:', type(({...})[1]), ')')
+
 		table.insert(self._trail, leaving)
+
+		leaving.retval = {...}
+
 		return ...
 	end
 
