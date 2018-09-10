@@ -159,6 +159,7 @@ return function(LuaParser, define_rule)
 								op, r
 							},{
 								op 		= op;
+								operator 	= op;
 								operands	= { r };
 								sequence 	= original_sequence;
 							}))
@@ -180,9 +181,10 @@ return function(LuaParser, define_rule)
 								'expression',
 								'rvalue-expression',
 							},{
-								op, l, r
+								l, op, r
 							},{
 								op 		= op;
+								operator 	= op;
 								operands	= { l, r };
 								sequence 	= original_sequence;
 							}))
