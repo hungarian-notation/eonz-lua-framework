@@ -41,7 +41,7 @@ return function(LuaParser, define_rule)
 	define_rule { name = 'variable_declaration',
 		function (self, roles)
 			roles = table.join((roles or {}), {
-				'variable-declaration', 'declaration', 'variable', 'identifier'
+				'variable-declaration', 'declaration', 'identifier'
 			})
 
 			local identifier_roles = {

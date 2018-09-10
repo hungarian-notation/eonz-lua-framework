@@ -22,11 +22,15 @@ local contracts 	= require('eonz.introspect.general-contracts')
 for i, contract in ipairs(contracts) do
 	tests["test contract: " .. contract.name] = function ()
 		for j, target in ipairs(targets) do
-			target_roots[j] = target_roots[j] or LuaParser({source = Source {
-				text = readfile(target),
-				name = target
-			}}):chunk()
 
+			target_roots[j] = target_roots[j] or (LuaParser({
+				source = Source {
+					text = readfile(target),
+					name = target
+				},
+
+				stream = { 'default' }
+			}):chunk():link())
 
 			local ast = target_roots[j]
 			contract.invoke(ast)

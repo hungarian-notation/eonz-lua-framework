@@ -64,7 +64,8 @@ return function(LuaParser, define_rule)
 				roles = { roles }
 			end
 
-			self:consume('(')
+			local _1, _2
+			_1 = self:consume('(')
 
 			local names 	= self:peek('identifier', 1) and self:name_list(roles or {'parameter'})
 			local varargs 	= nil
@@ -77,23 +78,23 @@ return function(LuaParser, define_rule)
 
 			if self:peek('keyword.varargs') or self:consume_optional(',') then
 				varargs = self:consume('keyword.varargs')
-				self:consume(')')
+				_2 = self:consume(')')
 
 				return SyntaxNode({
 					'parameter-list', 'list-construct', 'construct'
 				},{
-					names, varargs
+					_1, names, varargs, _2
 				},{
 					names = names,
 					varargs = varargs
 				})
 			else
 
-				self:consume(')')
+				_2 = self:consume(')')
 				return SyntaxNode({
 					'parameter-list', 'list-construct', 'construct'
 				},{
-					names
+					_1, names, _2
 				},{
 					names = names,
 					varargs = false

@@ -2,18 +2,13 @@ local eonz 	= require 'eonz'
 
 local Stream = eonz.class "eonz::lexer::Stream"
 do
-	function Stream.new(list)
-		return setmetatable({
-			_l	= assert(list),
-			_i	= 1
-		}, Stream)
+	function Stream:init(list, index)
+		self._l = assert(list)
+		self._i = index or 1
 	end
 
 	function Stream:clone()
-		return setmetatable({
-			_l	= assert(self._l),
-			_i	= self._i,
-		}, Stream)
+		return Stream(self._l, self._i)
 	end
 
 	function Stream:list(i)

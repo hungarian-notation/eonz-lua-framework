@@ -10,14 +10,13 @@ return function(LuaParser, define_rule)
 			local kw 	= self:consume('keyword.return')
 			local exprs 	= self:peek(LuaParser.EXPRESSION_PREDICT_SET) and self:expression_list()
 
-			self:consume_optional(';')
 
 			if exprs then
 				return SyntaxNode({
 					'return-statement',
 					'statement'
 				},{
-					kw, exprs
+					kw, exprs, self:consume_optional(';')
 				})
 			else
 				return SyntaxNode({
@@ -25,7 +24,7 @@ return function(LuaParser, define_rule)
 					'statement',
 					'empty-return-statement'
 				},{
-					kw
+					kw, self:consume_optional(';')
 				})
 			end
 		end
@@ -37,14 +36,14 @@ return function(LuaParser, define_rule)
 
 			if self:peek(';') then 							self:alternative "null-statement"
 				return SyntaxNode({
-					'statement', 'empty-statement'
+					'empty-statement', 'statement'
 				},{
 					self:consume()
 				})
 
 			elseif self:peek('identifier.label') then 				self:alternative "label"
 				return SyntaxNode({
-					'statement', 'label-statement', 'control-statement', 'control-flow-element'
+					'label-statement', 'statement', 'control-statement', 'control-flow-element'
 				},{
 					self:consume()
 				})
@@ -149,13 +148,13 @@ return function(LuaParser, define_rule)
 						self:consume('keyword.local'),
 						self:consume('keyword.function'),
 						self:variable_declaration{
-							'function-variable-declaration'
+							'function-declaration'
 						},
 						self:function_body();
 
 
 					return SyntaxNode({
-						'local-function-declaration', 'declaration', 'function', 'named', 'local', 'statement'
+						'local-function-declaration-statement', 'local-function-declaration', 'declaration', 'statement'
 					},{
 						local_kw, function_kw, id, body
 					},{
@@ -171,7 +170,7 @@ return function(LuaParser, define_rule)
 						self:function_body();
 
 					return SyntaxNode({
-						'function-declaration', 'declaration', 'function', 'named', 'statement'
+						'function-declaration-statement', 'declaration',  'statement'
 					},{
 						function_kw, name, body
 					},{
@@ -187,7 +186,6 @@ return function(LuaParser, define_rule)
 					self:consume('keyword.local'),
 					self:name_list {'local-variable-declaration', 'declaration', 'target-construct', 'target-list-construct'}
 
-
 				if self:peek('=') then
 					local eq 	= self:consume('=')
 					local exprs 	= self:expression_list {
@@ -196,8 +194,6 @@ return function(LuaParser, define_rule)
 					return SyntaxNode({
 						'local-assignment-statement',
 						'assignment-statement',
-						'declaration-local',
-						'variable-declaration-local',
 						'declaration',
 						'local',
 						'assignment-statement',
@@ -211,8 +207,8 @@ return function(LuaParser, define_rule)
 					})
 				else
 					return SyntaxNode({
-						'variable-declaration-local',
-						'declaration-local',
+						'local-declaration-statement',
+						'local-declaration',
 						'variable-declaration',
 						'declaration',
 						'local',
@@ -247,7 +243,7 @@ return function(LuaParser, define_rule)
 					}, lvalues)
 
 					return SyntaxNode({
-						'assignment-statement', 'statement'
+						'prior-assignment-statement', 'assignment-statement', 'statement'
 					},{
 						lvalues, eq, exprs
 					},{
@@ -288,7 +284,7 @@ return function(LuaParser, define_rule)
 				return SyntaxNode({
 					'if-then-construct', form:text() .. "-then-construct", "construct", 'control-flow-element', 'control-flow'
 				},{
-					test, block
+					form, test, block
 				},{
 					test=test,
 					block=block
@@ -316,7 +312,11 @@ return function(LuaParser, define_rule)
 			}, clauses)
 
 			return SyntaxNode({
-				'if-statement', 'statement', 'control-statement', 'control-flow-element', 'control-flow'
+				'if-statement',
+				'statement',
+				'control-statement',
+				'control-flow-element',
+				'control-flow'
 			},{
 				clauses, else_clause, self:consume('keyword.end')
 			},{
@@ -336,7 +336,6 @@ return function(LuaParser, define_rule)
 					'for-variable-declaration',
 					'control-flow-variable',
 					'control-flow',
-					'local-variable-declaration',
 					'declaration'
 				}
 						self:consume('=')
@@ -398,9 +397,14 @@ return function(LuaParser, define_rule)
 				end
 
 				return SyntaxNode({
-					'for-statement', 'for-range-statement', 'control-statement', 'statement', 'control-flow-element', 'control-flow'
+					'for-range-statement',
+					'for-statement',
+					'control-statement',
+					'statement',
+					'control-flow-element',
+					'control-flow'
 				},{
-					iter, range, block
+					kw, iter, range, block
 				})
 			else
 				-- for things in thing do
@@ -408,7 +412,6 @@ return function(LuaParser, define_rule)
 					'for-variable-declaration',
 					'control-flow-variable',
 					'control-flow',
-					'local-variable-declaration',
 					'declaration'
 				},{
 					'for-variable-list',
@@ -427,9 +430,14 @@ return function(LuaParser, define_rule)
 				}
 
 				return SyntaxNode({
-					'for-statement', 'for-iterator-statement','control-statement',  'statement', 'control-flow-element', 'control-flow'
+					'for-iterator-statement',
+					'for-statement',
+					'control-statement',
+					'statement',
+					'control-flow-element',
+					'control-flow'
 				},{
-					names, exprs, block
+					kw, names, exprs, block
 				})
 			end
 		end

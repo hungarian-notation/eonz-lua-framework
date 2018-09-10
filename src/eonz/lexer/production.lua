@@ -5,7 +5,8 @@ local info	= require 'eonz.lexer.info'
 
 local Production = eonz.class "eonz::lexer::Production"
 do
-	Production.DEFAULT_MODE = "default"
+	Production.DEFAULT_MODE 	= "default"
+	Production.DEFAULT_CHANNEL	= Token.DEFAULT_CHANNEL
 
 	function Production.new(id, pattern, opt)
 		opt = eonz.options.from(opt, {
@@ -51,6 +52,10 @@ do
 		end
 
 		id = id:trim()
+
+		if #opt.channels == 0 then
+			opt.channels = { Production.DEFAULT_CHANNEL }
+		end
 
 		local instance = {
 			_id 		= id,

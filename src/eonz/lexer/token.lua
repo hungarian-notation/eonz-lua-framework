@@ -1,11 +1,11 @@
 local eonz = require 'eonz'
-
 local info = require 'eonz.lexer.info'
 
 local Token = eonz.class "eonz::lexer::Token"
 do
 	Token.ERROR_TOKEN 		= 'error'
 	Token.ERROR_TOKEN_UNMATCHED 	= 'unexpected token'
+	Token.DEFAULT_CHANNEL		= 'default'
 
 	function Token.new(args)
 		local instance = {
@@ -17,6 +17,7 @@ do
 			_captures	= args.captures or {},
 			_ctx		= args.context,
 			_line_info	= args.line_info,
+			_index		= nil,
 			_data		= {}
 		}
 
@@ -57,6 +58,72 @@ do
 			context		= self:context(),
 			data		= table.copy(self:data())
 		}
+	end
+
+	function Token:adjacent(count, channels)
+		if not channels then
+			local index = self:index() + count
+			return self:context():tokens(index)
+		else
+			local next_index, next_token
+			local origin	= self:index()
+			local dir 	= count < 0 and -1 or 1
+			local i 	= 0
+			local j		= 0
+
+			while j ~= count do
+				i		= i + dir
+				next_index 	= i + origin
+				next_token	= self:context():tokens(next_index)
+
+				if not next_token then
+					break
+				elseif next_token:channels(channels) then
+					j = j + dir
+				end
+			end
+
+			if j ~= count then
+				return nil
+			else
+				return next_token
+			end
+		end
+	end
+
+	--[[--
+		gets the token's absolute index in the token stream
+	--]]--
+	function Token:index()
+		if not self._index then
+			self._index = table.index_of(self:context():tokens(), self) or -1
+		end
+
+		return self._index > 0 and self._index or nil
+	end
+
+	--[[--
+		get the token's channel list, or test if the token is in one
+		or more channels.
+	--]]--
+	function Token:channels(test)
+		if test then
+			local own = self:channels()
+
+			if type(test) == 'string' then
+				test = { test }
+			end
+
+			for i, c in ipairs(test) do
+				if table.contains(own, c) then
+					return true
+				end
+			end
+
+			return false
+		else
+			return self:production() and self:production():channels() or { Token.DEFAULT_CHANNEL }
+		end
 	end
 
 	function Token:data()

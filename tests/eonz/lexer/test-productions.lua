@@ -24,7 +24,7 @@ tests["Production:modes(), :channels(), :actions()"] = function()
 
 	assert_table_equals({ 'default' }, p1:modes())
 	assert_true(p1:modes('default'))
-	assert_table_equals({}, p1:channels())
+	assert_table_equals({ 'default' }, p1:channels())
 	assert_table_equals({}, p1:actions())
 	assert_table_equals({}, p1:predicates())
 

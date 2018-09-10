@@ -22,7 +22,6 @@ return function(LuaParser, define_rule)
 
 	define_rule { name = 'function_body',
 		function (self)
-
 			return SyntaxNode({
 				'function-body-construct', 'construct'
 			},{
@@ -51,7 +50,7 @@ return function(LuaParser, define_rule)
 				is_method = true
 			else
 				target = SyntaxNode({
-					'invocation-target-construct', 'target-construct', 'construct'
+					'invocation-target-construct', 'function-invocation-target', 'target-construct', 'construct'
 				},{
 					base
 				})
@@ -90,26 +89,34 @@ return function(LuaParser, define_rule)
 			self:expect(LuaParser.INVOCATION_ARGS_PREDICT_SET,
 				"expected function arguments, table-as-arguments, or string-as-arguments")
 
-			if self:consume_optional('(') then
+			if self:peek('(') then
+				local _1, _2
+				_1 = self:consume_optional('(')
+
 				if self:peek(LuaParser.EXPRESSION_PREDICT_SET) then
 					local args = self:expression_list()
-					self:consume(")")
+					_2 = self:consume(")")
+
 					return SyntaxNode({
+						'populated-list-arguments-construct',
+						'list-arguments-construct',
 						'arguments-construct',
 						'list-construct',
 						'construct',
-						(is_method and 'method-' or '') .. 'arguments-list-construct'
-					},{ args })
+						(is_method and 'method-' or '') .. 'arguments-construct'
+					},{ _1, args, _2 })
 				else
-					self:consume(")")
+					_2 = self:consume(")")
 					return SyntaxNode({
-						'empty-arguments-list-construct',
+						'empty-list-arguments-construct',
+						'list-arguments-construct',
 						'arguments-construct',
 						'list-construct',
 						'construct',
-						(is_method and 'method-' or '') .. 'arguments-list-construct'
-					},{})
+						(is_method and 'method-' or '') .. 'arguments-construct'
+					},{ _1, _2 })
 				end
+
 			elseif self:peek('{') then
 				local expr = self:table_constructor()
 
@@ -117,7 +124,7 @@ return function(LuaParser, define_rule)
 					'table-arguments-construct',
 					'arguments-construct',
 					'construct',
-					(is_method and 'method-' or '') .. 'arguments-list-construct'
+					(is_method and 'method-' or '') .. 'arguments-construct'
 				},{ expr })
 
 			elseif self:peek(LuaParser.STRING_TOKENS) then
@@ -127,7 +134,7 @@ return function(LuaParser, define_rule)
 					'string-arguments-construct',
 					'arguments-construct',
 					'construct',
-					(is_method and 'method-' or '') .. 'arguments-list-construct'
+					(is_method and 'method-' or '') .. 'arguments-construct'
 				},{ expr })
 			end
 

@@ -178,6 +178,14 @@ do -- SourceInterval
 		return self._source
 			or self:context() and self:context():source()
 	end
+
+	function SourceInterval:text()
+		return self:source():text():sub(self:start(), self:stop())
+	end
+
+	function SourceInterval:__tostring()
+		return "(" .. self:start_position():tostring() .. ", " .. self:stop_position():tostring() .. "]"
+	end
 end
 
 do -- SourceLine

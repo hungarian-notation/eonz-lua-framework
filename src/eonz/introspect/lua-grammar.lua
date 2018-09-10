@@ -137,7 +137,9 @@ return Grammar {
 	{ '.', "%." },
 	{ ':', "%:" },
 
-	{ 'WS', "%s", skip=true },
+	{ 'whitespace.inline', '[\t ]', 	channel="whitespace"},
+	{ 'whitespace.linebreak', '[\r\n]',	channels={"whitespace", "newlines"}},
+	{ 'whitespace.other', "%s", 		channel="whitespace" },
 
 
 	{
@@ -150,6 +152,8 @@ return Grammar {
 			-- actual production
 			FRAG_COMMENT .. "[^\r\n]*"
 		},
+
+		channel = "comments";
 
 		predicates = {
 			function (ctx, tok)
@@ -178,7 +182,7 @@ return Grammar {
 			end
 		},
 
-		skip = true
+		--skip = true
 	},
 
 	-- brackets
@@ -187,6 +191,8 @@ return Grammar {
 		'comment.multiline',
 
 		FRAG_COMMENT .. FRAG_LEFT_BRACKET,
+
+		channel = "comments";
 
 		actions = {
 			start_brackets()
@@ -204,9 +210,9 @@ return Grammar {
 			actions.pop_mode(),
 
 			function (ctx, tok)
-				if ctx:tokens(-1):id('comment.multiline') then
-					actions.skip()(ctx)
-				end
+				--if ctx:tokens(-1):id('comment.multiline') then
+				--	actions.skip()(ctx)
+				--end
 			end
 
 		},
@@ -273,8 +279,8 @@ return Grammar {
 		'string.single.stop',
 		"'",
 		merge		= true,
-		mode = 'string.single',
-		pop_mode = true
+		mode 		= 'string.single',
+		pop_mode 	= true
 	},
 
 	-- double quote string
@@ -282,7 +288,7 @@ return Grammar {
 	{
 		'string.double',
 		"\"",
-		push_mode = 'string.double'
+		push_mode 	= 'string.double'
 	},
 
 	{
@@ -295,8 +301,8 @@ return Grammar {
 	{
 		'string.double.stop',
 		"\"",
-		mode = 'string.double',
-		merge	= true,
-		pop_mode = true
+		mode 		= 'string.double',
+		merge		= true,
+		pop_mode 	= true
 	}
 }

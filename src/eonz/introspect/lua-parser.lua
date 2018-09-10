@@ -2,13 +2,10 @@
 
 local eonz 		= require 'eonz'
 local Token 		= require 'eonz.lexer.token'
-
 local Stream 		= require 'eonz.lexer.stream'
 local Context 		= require 'eonz.lexer.context'
-
 local GenericLuaParser 	= require 'eonz.lexer.parser'
 local grammar		= require 'eonz.introspect.lua-grammar'
-
 local SyntaxNode 	= require 'eonz.lexer.syntax-node'
 
 local LuaParser = eonz.class { 	name	= "eonz::introspect::LuaParser",
@@ -18,8 +15,10 @@ do
 
 	function LuaParser:init(opt)
 		opt = eonz.options.from(opt, {
-			grammar = grammar
+			grammar	 	= grammar;
+			stream 		= 'default';
 		})
+
 
 		GenericLuaParser.init(self, opt)
 	end
@@ -65,7 +64,7 @@ do
 
 			if #stat == 0 then
 				stat = SyntaxNode({
-					'empty-statement-list-construct', 'statement-list-construct', 'list-construct', 'construct', 'empty'
+					'empty-statement-list-construct', 'statement-list-construct', 'list-construct', 'construct'
 				}, stat)
 			else
 				stat = SyntaxNode({

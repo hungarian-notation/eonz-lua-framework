@@ -47,14 +47,35 @@ local function each_node(scope)
 end
 
 local DISALLOW_ROLES = {
-	'nil', 'boolean', 'rvalue', 'lvalue', 'do', 'loop', 'break', 'while', 'table', 'elseif', 'if', 'then'
+	'nil', 'boolean', 'rvalue', 'lvalue', 'do', 'loop', 'break', 'while', 'table', 'elseif', 'if', 'then', 'empty', 'named'
 }
 
 local CATEGORIES = {
 	"chunk", "construct", "operator", "identifier", "expression", "statement"
 }
 
+local VALID_STATEMENTS = {
+	'local-function-declaration-statement';
+	'function-declaration-statement';
+	'function-invocation-statement'; 	-- a function call at the statement level
+	'local-declaration-statement';		-- declare local scope variable without assigning
+	'local-assignment-statement';		-- declare and possibly assing local scope variable
+	'prior-assignment-statement'; 		-- non-declaring assigning, to global or local
+	'do-statement';
+	'if-statement';
+	'for-range-statement';
+	'for-iterator-statement';
+	'while-statement';
+	'repeat-statement';
+	'break-statement';
+	'goto-statement';
+	'label-statement';
+	'empty-statement';
+	'return-statement';
+}
+
 do
+
 	define_contract { name = "variable expansion and expansion contexts";
 		each_node { matching = { none_of = {'expansion-context'} };
 			function (node)
@@ -65,6 +86,10 @@ do
 				end
 			end
 		}
+	}
+
+	define_contract { name = "statements are on list of valids";
+		role_implies({ 'statement' }, { any_of = VALID_STATEMENTS })
 	}
 
 	define_contract { name = "DISALLOW_ROLES";

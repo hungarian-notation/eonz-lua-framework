@@ -6,14 +6,29 @@ local GenericParser = eonz.class "eonz::lexer::GenericParser"
 do
 	function GenericParser:init(opt)
 		opt = eonz.options.from(opt)
+
 		self._ctx	= opt.context or Context { 	grammar = opt.grammar,
 								source 	= opt.source,
 								text	= opt.text 	}
-		self._stream	= nil
+
+		self._stream	= opt.stream
 		self._stack 	= {}
 		self._trail	= {}
 		self._opt	= opt
 		self._error	= nil
+
+		if type(self._stream) == 'string' then
+			self._stream = { self._stream }
+		end
+
+		if type(self._stream) == 'table' then
+			if not Stream:is_instance(self._stream) then
+				-- _stream can only correctly be a table
+				-- of channel names at this point
+				self._stream = self._ctx:stream(self._stream)
+			end				
+		end
+
 	end
 
 	function GenericParser:options(name)

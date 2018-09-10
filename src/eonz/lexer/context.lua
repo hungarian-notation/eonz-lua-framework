@@ -2,6 +2,7 @@ local eonz 		= require 'eonz'
 local Production 	= require 'eonz.lexer.production'
 local Token 		= require 'eonz.lexer.token'
 local info		= require 'eonz.lexer.info'
+local Stream		= require 'eonz.lexer.stream'
 
 local Context = eonz.class "eonz::lexer::Context"
 do
@@ -12,7 +13,6 @@ do
 			opt.text = opt.source
 			opt.source = nil
 		end
-
 
 		if not opt.source then
 			opt.source = info.Source {
@@ -74,6 +74,20 @@ do
 		else
 			return self._tok[self:token_index(i)]
 		end
+	end
+
+	function Context:stream(channels)
+		self:consume()
+
+		local matched = {}
+
+		for i, tok in ipairs(self:tokens()) do
+			if tok:channels(channels) then
+				table.insert(matched, tok)
+			end
+		end
+
+		return Stream(matched, 1)
 	end
 
 	function Context:remove_token(i)

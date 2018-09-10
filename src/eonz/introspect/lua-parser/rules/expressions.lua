@@ -507,20 +507,19 @@ return function(LuaParser, define_rule)
 	define_rule { name = 'rvalue_prime',
 		function (self, base)
 			if self:peek('[') then
-				local expr = {
+				local _1, expr, _2 =
 					self:consume('['),
 					LuaParser.flatten_varargs(self:expression()),
-					self:consume(']')
-				}
+					self:consume(']');
 
-				expr[2]:extend {
+				expr:extend {
 					'index-value-expression'
 				}
 
 				return SyntaxNode({
 					'value-index-expression', 'lvalue-expression', 'rvalue-expression', 'lookup', 'expression'
 				},{
-					base, value, prime
+					base, _1, expr, _2
 				},{
 					target		= base,
 					value_category	= LuaParser.LVALUE_CATEGORY,
@@ -541,7 +540,6 @@ return function(LuaParser, define_rule)
 	define_rule { name = 'table_constructor',
 		function (self)
 			local open 	= self:consume("{")
-
 			local next_array	= 1
 			local fields		= {}
 
