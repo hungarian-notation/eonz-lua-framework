@@ -21,25 +21,25 @@ Every node must declare at least one of the following categorical roles:
 
 These roles provide a basic level at which we can reason about an AST.
 
-### chunk
+### `chunk`
 
 Used exclusively by the root node as its only declared role.
 
-### statement
+### `statement`
 
 A top level statement. See below for more details.
 
-### identifier
+### `identifier`
 
 An identifier keyword in its role in the source. Depending on the role it
 serves, it may be declare the `reference` or `declaration` roles.
 
-### expression
+### `expression`
 
 A broad category that includes literals, operations, function invocations, and
 anonymous table and function objects.
 
-### operator
+### `operator`
 
 An operator. These will always appear as children of an `operation-expression`
 
