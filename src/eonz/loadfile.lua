@@ -4,10 +4,10 @@
 --
 -- The version created when setfenv exists ignores the mode argument.
 
-return function(file, mode, env)
+return function(file, env)
 	if setfenv then
 		return setfenv(loadfile(file), env)
 	else
-		return loadfile(file, mode, env)
+		return loadfile(file, nil, env)
 	end
 end

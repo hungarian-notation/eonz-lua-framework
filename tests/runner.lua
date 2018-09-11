@@ -51,7 +51,7 @@ return function(test_path, test_group)
 		env[k] = v
 	end
 
-	local factory = eonz.loadfile(test_path, "t", env)
+	local factory = eonz.loadfile(test_path, env)
 	local ok, result = pcall(factory, tests, group)
 
 	if not ok then
