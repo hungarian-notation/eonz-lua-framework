@@ -52,7 +52,7 @@ the following roles:
 	'function-declaration-statement';
 	'function-invocation-statement'; 			-- a function call at the statement level
 	'local-declaration-statement';				-- declare local scope variable without assigning
-	'local-assignment-statement';				-- declare and possibly assing local scope variable
+	'local-assignment-statement';				-- declare and possibly assign local scope variable
 	'prior-assignment-statement'; 				-- non-declaring assigning, to global or local
 	'do-statement';
 	'if-statement';
@@ -72,7 +72,7 @@ the following roles:
 
 Literal values declare the `literal` role. This includes table and function
 literals. True constants will declare the `constexpr` role, and will have tags
-holding their lua type and their actual lua value in the correct type:
+holding their Lua type and their actual Lua value in the correct type:
 
 	constexpr	= 	«lua-type-string»;
 	value		= 	«lua-value»;
