@@ -56,33 +56,38 @@ do
 
 	define_rule { name = 'block',
 		function (self)
-			local stat 	= {}
+			local statements = {}
+			local statements_node = nil
 
 			while self:peek(LuaParser.STATEMENT_PREDICT_SET) do
-				table.insert(stat, self:statement())
+				table.insert(statements, self:statement())
 			end
 
-			if #stat == 0 then
-				stat = SyntaxNode({
-					'empty-statement-list-construct', 'statement-list-construct', 'list-construct', 'construct'
-				}, stat)
+			if #statements == 0 then
+				statements_node = SyntaxNode({
+					'empty-statement-list-construct', 'statement-lists-construct', 'list-construct', 'construct'
+				}, statements)
 			else
-				stat = SyntaxNode({
+				statements_node = SyntaxNode({
 					'statement-list-construct',  'list-construct', 'construct',
-				}, stat)
+				}, statements)
 			end
 
-			local retstat	= self:peek('keyword.return') and self:return_statement()
+			local return_statement	= self:peek('keyword.return') and self:return_statement() or nil
 
-			if retstat then
-				return SyntaxNode({
-					'block-construct', 'construct'
-				}, { stat, retstat })
-			else
-				return SyntaxNode({
-					'block-construct', 'construct'
-				}, { stat })
-			end
+			local combined = return_statement
+				and table.join(statements, { return_statement })
+				or table.copy(statements)
+
+			return SyntaxNode({
+				'block-construct', 'construct'
+			},{
+				statements_node, return_statement
+			},{
+				statements 		= statements;
+				return_statement	= return_statement;
+				combined		= combined;
+			})
 		end
 	}
 

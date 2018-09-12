@@ -6,8 +6,6 @@ return function(LuaParser, define_rule)
 
 	define_rule { name = 'expression_list',
 		function (self, roles)
-
-
 			local expressions = {
 				self:expression()
 			}
@@ -24,7 +22,7 @@ return function(LuaParser, define_rule)
 				LuaParser.flatten_varargs(expressions[i])
 			end
 
-			return SyntaxNode(final_roles, expressions)
+			return SyntaxNode(final_roles, expressions, { expressions = expressions })
 		end
 	}
 
@@ -53,7 +51,9 @@ return function(LuaParser, define_rule)
 				next()
 			end
 
-			return SyntaxNode(list_roles, names)
+			return SyntaxNode(list_roles, names, {
+				identifiers = names;
+			})
 		end
 	}
 
@@ -73,7 +73,7 @@ return function(LuaParser, define_rule)
 			if not names then
 				names = SyntaxNode({
 					'empty-names-list', 'names-list', 'list-construct', 'construct'
-				},{},{empty=true})
+				},{},{empty=true, identifiers={}})
 			end
 
 			if self:peek('keyword.varargs') or self:consume_optional(',') then
@@ -85,6 +85,7 @@ return function(LuaParser, define_rule)
 				},{
 					_1, names, varargs, _2
 				},{
+					identifiers = assert(names:tags("identifiers"));
 					names = names,
 					varargs = varargs
 				})
@@ -96,6 +97,7 @@ return function(LuaParser, define_rule)
 				},{
 					_1, names, _2
 				},{
+					identifiers = assert(names:tags("identifiers"));
 					names = names,
 					varargs = false
 				})

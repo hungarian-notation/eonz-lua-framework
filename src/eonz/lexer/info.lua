@@ -20,9 +20,16 @@ local SourcePosition = eonz.class {
 do -- Source
 	function Source:__init(opt)
 		opt = eonz.options.from(opt)
-		self._text	= opt.text
-		self._name	= opt.name or 'unknown-source'
-		self._lang	= opt.lang or 'unknwon-language'
+
+		if opt.path then
+			self._name 	= opt.path
+			self._text	= assert(eonz.readfile(opt.path), "could not read source from: " .. tostring(opt.path))
+		else
+			self._text	= opt.text
+			self._name	= opt.name or 'unknown-source'
+		end
+
+		self._lang	= opt.lang or 'unknown-language'
 		self._lines	= nil -- lazily created
 	end
 

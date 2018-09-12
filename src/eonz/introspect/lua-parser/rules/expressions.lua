@@ -161,6 +161,7 @@ return function(LuaParser, define_rule)
 								op 		= op;
 								operator 	= op;
 								operands	= { r };
+								expressions	= { r };
 								sequence 	= original_sequence;
 							}))
 
@@ -186,6 +187,7 @@ return function(LuaParser, define_rule)
 								op 		= op;
 								operator 	= op;
 								operands	= { l, r };
+								expressions	= { l, r };
 								sequence 	= original_sequence;
 							}))
 
@@ -256,6 +258,8 @@ return function(LuaParser, define_rule)
 					return SyntaxNode({
 						'string  \"' .. content .. '\"',
 						'string-literal',
+						'string-expression',
+						'constant-expression',
 						'literal-expression',
 						'expression',
 						'rvalue-expression',
@@ -276,6 +280,8 @@ return function(LuaParser, define_rule)
 					return SyntaxNode({
 						'string  \"' .. content .. '\"',
 						'string-literal',
+						'string-expression',
+						'constant-expression',
 						'literal-expression',
 						'expression',
 						'rvalue-expression',
@@ -296,6 +302,8 @@ return function(LuaParser, define_rule)
 					return SyntaxNode( table.join({ 'number \"' .. tok:text() .. '\"'
 					},{
 						'number-literal',
+						'number-expression',
+						'constant-expression',
 						'literal-expression',
 						'expression',
 						'rvalue-expression',
@@ -313,6 +321,7 @@ return function(LuaParser, define_rule)
 					if tok:text() == 'nil' then
 						return SyntaxNode({
 							'nil-literal',
+							'constant-expression',
 							'nil-expression',
 							'literal-expression',
 							'expression',
@@ -332,6 +341,8 @@ return function(LuaParser, define_rule)
 							'boolean-' .. variant .. '-literal-expression',
 							'boolean-literal-expression',
 							'literal-expression',
+							'constant-expression',
+							'boolean-literal';
 							'boolean-expression',
 							'expression',
 							'rvalue-expression',
@@ -494,9 +505,10 @@ return function(LuaParser, define_rule)
 				}
 
 				return SyntaxNode({
-					'expression', 'rvalue-expression'
+					'atomic-expression', 'expression', 'rvalue-expression'
 				}, expr, {
 					expression 	= expr[2];
+					expressions 	= { expr[2] };
 					value		= expr[2];
 					value_category	= LuaParser.RVALUE_CATEGORY;
 				})
@@ -523,15 +535,21 @@ return function(LuaParser, define_rule)
 				},{
 					base, _1, expr, _2
 				},{
-					target		= base,
+					expressions	= { base, expr };
+					target		= assert(base);
+					index		= expr;
 					value_category	= LuaParser.LVALUE_CATEGORY,
 					valid_statement	= false
 				})
 			else
-				return self:indexing_identifier(base, {
+				local identifier = self:indexing_identifier(base, {
 					'identifier-index-expression', 'lvalue-expression', 'rvalue-expression', 'lookup', 'expression'
-				}):extend({},{
-					target		= base,
+				})
+
+				return identifier:extend({},{
+					expressions	= { base };
+					target		= assert(base);
+					index		= identifier;
 					value_category	= LuaParser.LVALUE_CATEGORY,
 					valid_statement	= false
 				})
@@ -572,7 +590,8 @@ return function(LuaParser, define_rule)
 							key 		= expr,
 							key_expression 	= expr,
 							key_value	= expr,
-							value 		= value_expr
+							value 		= value_expr,
+							expressions	= { expr, value_expr };
 						})
 					else
 						local id, kw_eq, value_expr =
@@ -591,6 +610,7 @@ return function(LuaParser, define_rule)
 							key 		= id;
 							key_identifier 	= id;
 							value 		= value_expr;
+							expressions	= { value_expr };
 						})
 					end
 				else
@@ -602,7 +622,8 @@ return function(LuaParser, define_rule)
 						'construct',
 						'positional-table-field'
 					},{
-						value = expression
+						value 		= expression;
+						expressions	= { expression };
 					})
 				end
 
@@ -622,16 +643,25 @@ return function(LuaParser, define_rule)
 				fields[#fields]:extend { LuaParser.EXPANSION_CONTEXT_ROLE }
 			end
 
-			fields = SyntaxNode({
+			local expressions = {};
+
+			for i, field in ipairs(fields) do
+				for j, exp in ipairs(assert(field:tags('expressions'))) do
+					table.insert(expressions, assert(exp:roles('expression') and exp))
+				end
+			end
+
+			local fields_node = SyntaxNode({
 				'table-field-list-construct', 'list-construct', 'construct', LuaParser.EXPANSION_CONTEXT_ROLE
 			}, fields)
 
 			return SyntaxNode({
 				'table-expression', 'table-literal', 'literal-expression', 'expression', 'rvalue-expression'
 			},{
-				open, fields, self:consume("}")
+				open, fields_node, self:consume("}")
 			},{
-				fields = fields
+				fields = fields;
+				expressions = expressions;
 			})
 		end
 	}

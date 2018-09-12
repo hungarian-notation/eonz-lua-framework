@@ -9,8 +9,8 @@ return function(LuaParser, define_rule)
 			roles.primary = roles.primary or "id"
 			local id = self:consume('identifier')
 			return SyntaxNode(table.join({
-				roles.primary .. ' \"' .. id:text() .. '\"', "identifier"
-			}, roles or {}), {id}, { name = id })
+				roles.primary .. ' \"' .. id:text() .. '\"', "identifier", "id"
+			}, roles or {}), {id}, { name_token = id })
 		end
 	}
 
@@ -20,11 +20,11 @@ return function(LuaParser, define_rule)
 
 			local roles = table.join(roles or {}, {
 				'variable-reference \"' .. identifier:children()[1]:text() .. '\"';
-				'variable-reference';
 				'reference';
 				'variable';
 				'identifier';
 				'expression';
+				'variable-reference';
 				'lvalue-expression';
 				'rvalue-expression';
 			})
@@ -49,11 +49,17 @@ return function(LuaParser, define_rule)
 				table.contains(roles, 'declaration') and 'declaration' or nil
 			}
 
-			return SyntaxNode(roles,{
-				self:identifier(identifier_roles)
-			},{
+			local id = self:identifier(identifier_roles)
+
+			--return SyntaxNode(roles,{
+			--	id
+			--},{
+			--	name = id;
+			--	added_roles = roles ;
+			--})
+
+			return id:extend(roles, {
 				name = id;
-				added_roles = roles ;
 			})
 		end
 	}
@@ -77,11 +83,15 @@ return function(LuaParser, define_rule)
 			roles.top_role = roles.top_role or "index-identifier"
 
 			assert(left, "indexing_identifier requires index target as argument")
-			assert(left:roles({ 'rvalue-expression', 'expression', 'index-construct', 'identifier' }), "invalid index target: " .. tostring(left))
+			assert(left:roles({ 'rvalue-expression', 'expression', 'index-construct', 'variable-declaration' }), "invalid index target: " .. tostring(left))
 
-			left = SyntaxNode({
+			--left = SyntaxNode({
+			--	'index-target-construct', 'target-construct', 'construct'
+			--}, { left })
+
+			left = left:extend {
 				'index-target-construct', 'target-construct', 'construct'
-			}, { left })
+			}
 
 			local _1, id = self:consume(roles.op), self:identifier({
 				"index-identifier";
@@ -95,7 +105,7 @@ return function(LuaParser, define_rule)
 			return SyntaxNode(final_roles,{
 				left, _1, id
 			},{
-				target 		= left;
+				target		= left;
 				name 		= id;
 				index 		= id;
 				value_category	= LuaParser.LVALUE_CATEGORY;

@@ -223,7 +223,7 @@ do
 
 	function SyntaxNode:extend(extensions, tags)
 		self._roles 	= table.join(extensions, self._roles)
-		self._tags 	= table.merge({}, tags, self._tags)
+		self._tags 	= table.merge({}, tags or {}, self._tags or {})
 		self:validate()
 		return self
 	end
@@ -263,10 +263,18 @@ do
 	end
 
 	function SyntaxNode:select(test)
-		local matched = table.array {}
+		local first_only	= false
+		local matched 		= table.array {}
 
 		if type(test) == 'nil' then
 			return self:rules()
+		end
+
+		if type(test) == 'table' then
+			if type(test.first) ~= 'nil' then
+				test 		= test.first
+				first_only	= true
+			end
 		end
 
 		test = complete_test(test)
@@ -277,7 +285,11 @@ do
 			end
 		end
 
-		return matched
+		if first_only then
+			return assert(matched[1], "no such child")
+		else
+			return matched
+		end
 	end
 
 
@@ -356,18 +368,6 @@ do
 		self._terminals = {}
 		self._rules 	= {}
 
-		for i, child in ipairs(self:children()) do
-			if Token:is_instance(child) then
-				table.insert(self:terminals(), child)
-			else
-				table.insert(self:rules(), child)
-
-				if not SyntaxNode:is_instance(child) then
-					error("not an instance of " .. tostring(SyntaxNode) .. ": " .. table.tostring(child, 'pretty'))
-				end
-			end
-		end
-
 		local roles = {}
 
 		for i, role in ipairs(self:roles()) do
@@ -377,6 +377,21 @@ do
 		end
 
 		self._roles = roles
+
+		for i, child in ipairs(self:children()) do
+			if Token:is_instance(child) then
+				table.insert(self:terminals(), child)
+			else
+				table.insert(self:rules(), child)
+
+				if not SyntaxNode:is_instance(child) then
+					error(tostring(roles[1]) .. ": #" .. tostring(i)
+						.. " is not an instance of "
+						.. tostring(SyntaxNode) .. ": "
+						.. table.tostring(child, 'pretty'))
+				end
+			end
+		end
 	end
 
 	function SyntaxNode:depth_under()

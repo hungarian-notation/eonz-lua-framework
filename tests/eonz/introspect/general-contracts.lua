@@ -13,10 +13,11 @@ end
 local function role_implies(match, implies)
 	local function apply(node)
 		if node:roles(match) and not node:roles(implies) then
-			dsl.fail(string.format("failed implication:\n\n\t%s\n\n\t\t->\n\n\t%s\n\n\troles: %s\n\n\tnode: %s",
+			dsl.fail(string.format("failed implication:\n\n\t%s\n\n\t\t->\n\n\t%s\n\n\troles: %s\n\n\tat: %s\n\n\tnode: %s",
 				table.tostring(match),
 				table.tostring(implies),
 				table.tostring(node:roles()),
+				tostring(node:start():interval():start_position()),
 				tostring(node)))
 		end
 		for i, child in ipairs(node:rules()) do
@@ -56,7 +57,8 @@ local CATEGORIES = {
 
 local VALID_STATEMENTS = {
 	'local-function-declaration-statement';
-	'function-declaration-statement';
+	'global-function-declaration-statement';
+	'member-function-declaration-statement';
 	'function-invocation-statement'; 	-- a function call at the statement level
 	'local-declaration-statement';		-- declare local scope variable without assigning
 	'local-assignment-statement';		-- declare and possibly assing local scope variable
@@ -74,6 +76,26 @@ local VALID_STATEMENTS = {
 	'return-statement';
 }
 
+local VALID_EXPRESSIONS = {
+	'string-literal';
+	'number-literal';
+	'boolean-literal';
+	'nil-literal';
+	'varargs-literal';
+
+	'function-literal';
+
+	'variable-reference';
+	'control-flow-condition';
+
+	'atomic-expression';
+	'value-index-expression';
+	'identifier-index-expression';
+	'operation-expression';
+	'table-expression';
+	'invocation-expression';
+}
+
 do
 
 	define_contract { name = "variable expansion and expansion contexts";
@@ -88,7 +110,11 @@ do
 		}
 	}
 
-	define_contract { name = "statements are on list of valids";
+	define_contract { name = "constrain expression variety";
+		role_implies({ 'expression' }, { any_of = VALID_EXPRESSIONS })
+	}
+
+	define_contract { name = "constrain statement variety";
 		role_implies({ 'statement' }, { any_of = VALID_STATEMENTS })
 	}
 

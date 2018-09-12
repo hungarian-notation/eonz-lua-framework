@@ -10,12 +10,14 @@ function EONZ.debug(...)
 end
 
 function EONZ.configure(opt)
-
 	require('eonz.polyfill')()
 
 	EONZ.options 	= require 'eonz.options'
+
 	EONZ.objects 	= require 'eonz.objects'
 	EONZ.class	= EONZ.objects.class
+	EONZ.get_class	= EONZ.objects.get_class
+
 	EONZ.platform 	= require('eonz.platform'):detect()
 
 	opt = EONZ.options.from(opt, {
@@ -60,8 +62,7 @@ function EONZ.configure(opt)
 
 	EONZ.__index = EONZ.__runtime_index
 
-	return EONZ
-
+	return EONZ.INSTANCE
 end
 
 function EONZ_METATABLE.__call(EONZ, ...)

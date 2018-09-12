@@ -4,15 +4,32 @@ return function(LuaParser, define_rule)
 
 	define_rule { name = 'function_name',
 		function (self)
-			local node = self:variable_reference()
+			local node = self:peek({'.', ':'}, 2)
+				and	self:variable_reference()
+				or	self:variable_declaration {
+					'function-declaration';
+					'declaration';
+					'function-name';
+				}
 
 			while self:peek('.') do
-				node = self:indexing_identifier(node)
+				node = self:peek({'.', ':'}, 3)
+					and	self:indexing_identifier(node)
+					or	self:indexing_identifier(node, {
+						'member-function-declaration';
+						'function-declaration';
+						'declaration';
+						'function-name';
+					})
 			end
 
 			if self:peek(':') then
 				node = self:method_index(node, {
-					'method-declaration', 'declaration'
+					'method-function-declaration';
+					'member-function-declaration';
+					'function-declaration';
+					'declaration';
+					'function-name';
 				})
 			end
 
@@ -22,15 +39,29 @@ return function(LuaParser, define_rule)
 
 	define_rule { name = 'function_body',
 		function (self)
-			return SyntaxNode({
-				'function-body-construct', 'construct'
-			},{
+
+			local params, block, kw_end =
 				self:param_list({
 					'function-parameter',
 					'local-variable-declaration',
 					'function-parameter-declaration',
 					'local-variable'
-				}), self:block(), self:consume('keyword.end')
+				}),
+				self:block(),
+				self:consume('keyword.end')
+
+			return SyntaxNode({
+				'function-body-construct', 'construct'
+			},{
+				params,
+				block,
+				kw_end
+			},{
+				declared_locals = assert(params:tags("identifiers"));
+
+				expressions 	= {};
+				block_locals	= params:tags("identifiers");
+				blocks		= { block };
 			})
 
 		end
@@ -41,19 +72,29 @@ return function(LuaParser, define_rule)
 			local target, args, is_method
 
 			if self:peek(':') then
-				target = SyntaxNode({
+				target = self:method_index(base, {
+					'method-identifier-index-expression';
+					'identifier-index-expression';
+					'expression';
+					'lvalue-expression';
+				}):extend({}, {
+					expressions = { target }
+				})
+
+
+				--[[SyntaxNode({
 					'invocation-target-construct', 'method-invocation-target', 'target-construct', 'construct'
 				},{
 					self:method_index(base)
-				})
+				})--]]
 
 				is_method = true
 			else
-				target = SyntaxNode({
+				target = base --[[ SyntaxNode({
 					'invocation-target-construct', 'function-invocation-target', 'target-construct', 'construct'
 				},{
 					base
-				})
+				})--]]
 
 				is_method = false
 			end
@@ -78,7 +119,8 @@ return function(LuaParser, define_rule)
 				is_method 		= is_method,
 				calling_convention	= is_method and "method" or "normal",
 				value_category		= LuaParser.RVALUE_CATEGORY,
-				valid_statement		= true
+				valid_statement		= true;
+				expressions		= table.join({target}, assert(args:tags("expressions")));
 			})
 		end
 	}
@@ -104,7 +146,9 @@ return function(LuaParser, define_rule)
 						'list-construct',
 						'construct',
 						(is_method and 'method-' or '') .. 'arguments-construct'
-					},{ _1, args, _2 })
+					},{ _1, args, _2 },{
+						expressions 	= assert(args:tags("expressions"));
+					})
 				else
 					_2 = self:consume(")")
 					return SyntaxNode({
@@ -114,7 +158,7 @@ return function(LuaParser, define_rule)
 						'list-construct',
 						'construct',
 						(is_method and 'method-' or '') .. 'arguments-construct'
-					},{ _1, _2 })
+					},{ _1, _2 }, { expressions = {} })
 				end
 
 			elseif self:peek('{') then
@@ -125,7 +169,7 @@ return function(LuaParser, define_rule)
 					'arguments-construct',
 					'construct',
 					(is_method and 'method-' or '') .. 'arguments-construct'
-				},{ expr })
+				},{ expr }, { expressions = { expr }; })
 
 			elseif self:peek(LuaParser.STRING_TOKENS) then
 				local expr = self:expression()
@@ -135,7 +179,7 @@ return function(LuaParser, define_rule)
 					'arguments-construct',
 					'construct',
 					(is_method and 'method-' or '') .. 'arguments-construct'
-				},{ expr })
+				},{ expr },{ expressions = { expr };})
 			end
 
 		end

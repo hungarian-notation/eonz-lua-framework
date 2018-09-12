@@ -49,7 +49,8 @@ All nodes that declare the `statement` role will also declare exactly one of
 the following roles:
 
 	'local-function-declaration-statement';
-	'function-declaration-statement';
+	'global-function-declaration-statement';
+	'member-function-declaration-statement';
 	'function-invocation-statement'; 			-- a function call at the statement level
 	'local-declaration-statement';				-- declare local scope variable without assigning
 	'local-assignment-statement';				-- declare and possibly assign local scope variable

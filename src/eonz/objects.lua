@@ -249,6 +249,9 @@ end
 
 objects.BaseObject 	= BaseObject
 objects.object 		= BaseObject
+objects.get_class	= BaseObject.get_class
+objects.is_class	= BaseObject.is_class
+objects.is_instance	= BaseObject.is_instance
 
 function objects.class(opt)
 	if type(opt) == 'string' then

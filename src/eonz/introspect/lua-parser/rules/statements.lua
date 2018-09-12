@@ -17,6 +17,9 @@ return function(LuaParser, define_rule)
 					'statement'
 				},{
 					kw, exprs, self:consume_optional(';')
+				},{
+					expressions 	= assert(exprs:tags('expressions'));
+					blocks		= {};
 				})
 			else
 				return SyntaxNode({
@@ -25,6 +28,10 @@ return function(LuaParser, define_rule)
 					'empty-return-statement'
 				},{
 					kw, self:consume_optional(';')
+				},{
+
+					expressions 	= {};
+					blocks		= {};
 				})
 			end
 		end
@@ -34,28 +41,37 @@ return function(LuaParser, define_rule)
 		function (self)
 			self:expect(LuaParser.STATEMENT_PREDICT_SET, "invalid token for start of statement")
 
-			if self:peek(';') then 							self:alternative "null-statement"
+			if self:peek(';') then 									self:alternative "null-statement"
 				return SyntaxNode({
 					'empty-statement', 'statement'
 				},{
 					self:consume()
+				},{
+					expressions 	= {};
+					blocks		= {};
 				})
 
-			elseif self:peek('identifier.label') then 				self:alternative "label"
+			elseif self:peek('identifier.label') then 						self:alternative "label"
 				return SyntaxNode({
 					'label-statement', 'statement', 'control-statement', 'control-flow-element'
 				},{
 					self:consume()
+				},{
+					expressions 	= {};
+					blocks		= {};
 				})
 
-			elseif self:peek('keyword.break') then 					self:alternative "break"
+			elseif self:peek('keyword.break') then 							self:alternative "break"
 				return SyntaxNode({
 					'break-statement', 'statement', 'control-statement', 'control-flow-statement', 'control-flow'
 				},{
 					self:consume()
+				},{
+					expressions 	= {};
+					blocks		= {};
 				})
 
-			elseif self:peek('keyword.goto') then 					self:alternative "goto"
+			elseif self:peek('keyword.goto') then 							self:alternative "goto"
 				return SyntaxNode({
 					'goto-statement', 'statement', 'control-statement', 'control-flow-statement', 'control-flow'
 				},{
@@ -63,8 +79,11 @@ return function(LuaParser, define_rule)
 					self:identifier {
 						'goto-target-identifier',
 						'label-identifier' }
+				},{
+					expressions 	= {};
+					blocks		= {};
 				})
-			elseif self:peek('keyword.do') then 					self:alternative "do"
+			elseif self:peek('keyword.do') then 							self:alternative "do"
 				local kw, block = self:consume('keyword.do'), self:block();
 
 				return SyntaxNode({
@@ -73,9 +92,10 @@ return function(LuaParser, define_rule)
 					kw, block,
 					self:consume('keyword.end')
 				}, {
-					block = block
+					expressions 	= {};
+					blocks		= { block };
 				})
-			elseif self:peek('keyword.while') then 					self:alternative "while"
+			elseif self:peek('keyword.while') then 							self:alternative "while"
 				local while_kw, test, do_kw, block, end_kw =
 					self:consume('keyword.while'),
 
@@ -100,11 +120,12 @@ return function(LuaParser, define_rule)
 				},{
 					while_kw, test, do_kw, block, end_kw
 				},{
-					test = test,
-					block = block
+					condition	= test;
+					expressions 	= { test };
+					blocks		= { block };
 				})
 
-			elseif self:peek('keyword.repeat') then 				self:alternative "repeat"
+			elseif self:peek('keyword.repeat') then 						self:alternative "repeat"
 
 				local repeat_kw, block, until_kw, expr =
 					self:consume('keyword.repeat'),
@@ -127,88 +148,145 @@ return function(LuaParser, define_rule)
 				},{
 					repeat_kw, block, until_kw, expr
 				},{
-					test 	= expr,
-					block 	= block
+					condition	= test;
+					expressions 	= { test };
+					blocks		= { block };
 				})
 
-			elseif self:peek('keyword.if') then 					self:alternative "if"
+			elseif self:peek('keyword.if') then 							self:alternative "if"
 
 				return self:if_statement()
 
-			elseif self:peek('keyword.for') then 					self:alternative "for"
+			elseif self:peek('keyword.for') then 							self:alternative "for"
 				return self:for_statement()
 
 			elseif (self:peek('keyword.local') and self:look(2):id('keyword.function'))
 				or (self:peek('keyword.function'))
 			then
 
-				if self:peek('keyword.local') then				self:alternative "local function"
+				if self:peek('keyword.local') then						self:alternative "local function"
 
 					local local_kw, function_kw, id, body =
 						self:consume('keyword.local'),
 						self:consume('keyword.function'),
 						self:variable_declaration{
-							'function-declaration'
+							'local-function-declaration';
+							'function-declaration';
+							'local-variable-declaration';
+							'local-declaration';
+							'declaration';
+
 						},
 						self:function_body();
 
-
 					return SyntaxNode({
-						'local-function-declaration-statement', 'local-function-declaration', 'declaration', 'statement'
+						'local-function-declaration-statement',
+						'local-function-declaration',
+						'local-declaration',
+						'function-declaration',
+						'function',
+						'declaration',
+						'statement'
 					},{
 						local_kw, function_kw, id, body
 					},{
-						id	= id;
-						body	= body;
+						name			= id;
+						declared_locals		= { id };
+						assigned_lvalues	= { id };
+						body			= body;
 					})
 
-				else								self:alternative "non-local function"
+				else										self:alternative "non-local function"
 
 					local function_kw, name, body =
 						self:consume('keyword.function'),
 						self:function_name(),
 						self:function_body();
 
-					return SyntaxNode({
-						'function-declaration-statement', 'declaration',  'statement'
-					},{
+					local roles = {
+						'function-declaration-statement',
+						'function-declaration',
+						'function',
+						'declaration',
+						'assignment-statement',
+						'assignment',
+						'statement'
+					}
+
+					local tags = {
+						name 			= name;
+						assigned_lvalues	= { name };
+						body			= body;
+					}
+
+					if name:roles("member-function-declaration") then
+						table.insert(roles, 1, "member-function-declaration-statement")
+						table.insert(roles, "member-function-declaration")
+					else
+						table.insert(roles, 1, "global-function-declaration-statement")
+						table.insert(roles, "global-function-declaration")
+						table.insert(roles, "global-declaration")
+
+						tags.declared_globals = {
+							assert(name:tags('name'))
+						}
+					end
+
+					return SyntaxNode(roles ,{
 						function_kw, name, body
-					},{
-						name 	= name;
-						body	= body;
-					})
+					}, tags)
 
 				end
 
-			elseif self:peek('keyword.local') then 					self:alternative "local declaration"
+			elseif self:peek('keyword.local') then 							self:alternative "local declaration"
 
 				local kw, names =
 					self:consume('keyword.local'),
-					self:name_list {'local-variable-declaration', 'declaration', 'target-construct', 'target-list-construct'}
+
+					self:name_list ({
+						'local-variable-declaration';
+						'declaration';
+						'target-construct';
+						'expression';
+						'variable-reference';
+						'lvalue-expression';
+					},{
+						'target-list-construct';
+					})
 
 				if self:peek('=') then
+
 					local eq 	= self:consume('=')
+
 					local exprs 	= self:expression_list {
 						'assignment-expression-list'
 					}
+
 					return SyntaxNode({
 						'local-assignment-statement',
 						'assignment-statement',
+
+						'local-variable-declaration',
+						'local-declaration',
+						'variable-declaration',
 						'declaration',
-						'local',
+
 						'assignment-statement',
 						'statement'
 					},{
 						kw, names, eq, exprs
 					},{
-						declarations = names;
-						targets = names;
-						values = exprs;
+						assigned		= assert(names:tags('identifiers'));
+						declared_locals		= assert(names:tags('identifiers'));
+						expressions 		= assert(exprs:tags('expressions'));
+						blocks			= {};
 					})
+
 				else
 					return SyntaxNode({
 						'local-declaration-statement',
 						'local-declaration',
+						'local-variable-declaration',
 						'variable-declaration',
 						'declaration',
 						'local',
@@ -216,7 +294,10 @@ return function(LuaParser, define_rule)
 					},{
 						kw, names
 					},{
-						declarations = names
+						declared_locals		= assert(names:tags('identifiers'));
+						assigned		= {};
+						expressions 		= {};
+						blocks			= {};
 					})
 				end
 			else
@@ -238,27 +319,35 @@ return function(LuaParser, define_rule)
 						'assignment-expressions', 'expression-list', 'list-construct', 'construct'
 					}
 
-					lvalues = SyntaxNode({
+					targets_node = SyntaxNode({
 						'assignment-targets', 'assignment-targets-construct', 'construct'
 					}, lvalues)
 
 					return SyntaxNode({
 						'prior-assignment-statement', 'assignment-statement', 'statement'
 					},{
-						lvalues, eq, exprs
+						targets_node, eq, exprs
 					},{
-						targets = lvalues,
-						values 	= exprs
+						declared_locals		= {};
+						assigned		= lvalues;
+						values 			= exprs;
+						expressions 		= assert(exprs:tags('expressions'));
+						blocks			= {};
 					})
 
 				elseif rvalue:tags('valid_statement') then self:alternative "function call"
 					-- this flag indicates that the rvalue
 					-- is a function call, and is a
 					-- valid statement
-					return LuaParser.flatten_varargs(rvalue):wrap {
+					local expression = LuaParser.flatten_varargs(rvalue)
+
+					return expression:wrap({
 						'function-invocation-statement',
 						'statement'
-					}
+					},{
+						expressions 	= { expression };
+						blocks 		= {};
+					})
 				else
 					self:syntax_error("not a statement: " .. tostring(rvalue), { after=true })
 				end
@@ -286,8 +375,10 @@ return function(LuaParser, define_rule)
 				},{
 					form, test, block
 				},{
-					test=test,
-					block=block
+					test=test;
+					block=block;
+					expressions 	= { test };
+					blocks 		= { block };
 				})
 			end
 
@@ -300,9 +391,15 @@ return function(LuaParser, define_rule)
 			end
 
 			if self:peek('keyword.else') then
+				local kw_else, block =
+					self:consume('keyword.else'), self:block()
+
 				else_clause = SyntaxNode({
 					'else-construct', 'construct', 'control-flow-element', 'control-flow'
-				},{ self:consume('keyword.else'), self:block() })
+				},{  kw_else, block },{
+					expressions 	= {};
+					blocks		= {block};
+				})
 			end
 
 			local clause_list = clauses
@@ -310,6 +407,15 @@ return function(LuaParser, define_rule)
 			clauses = SyntaxNode({
 				'if-clauses-construct', 'construct', 'control-flow-element', 'control-flow'
 			}, clauses)
+
+			local all_clauses = else_clause and table.join(clause_list, { else_clause }) or clause_list
+			local all_expressions 	= {}
+			local all_blocks 	= {}
+
+			for i, clause in ipairs(all_clauses) do
+				all_expressions = table.join(all_expressions, clause:tags('expressions'))
+				all_blocks 	= table.join(all_blocks, clause:tags('blocks'))
+			end
 
 			return SyntaxNode({
 				'if-statement',
@@ -321,7 +427,9 @@ return function(LuaParser, define_rule)
 				clauses, else_clause, self:consume('keyword.end')
 			},{
 				if_clauses = clauses,
-				else_clause = else_clause
+				else_clause = else_clause;
+				expressions 	= all_expressions;
+				blocks		= all_blocks;
 			})
 		end
 	}
@@ -405,6 +513,12 @@ return function(LuaParser, define_rule)
 					'control-flow'
 				},{
 					kw, iter, range, block
+				},{
+					declared_locals 	= { iter };
+					block_locals		= { iter };
+					--block_assigned_lvalues	= { iter };
+					expressions 		= { start, stop, step };
+					blocks			= { block };
 				})
 			else
 				-- for things in thing do
@@ -438,6 +552,12 @@ return function(LuaParser, define_rule)
 					'control-flow'
 				},{
 					kw, names, exprs, block
+				},{
+					declared_locals		= assert(names:tags('identifiers'));
+					block_locals		= names:tags('identifiers');
+					--block_assigned_lvalues	= names:tags('identifiers');
+					expressions 		= assert(exprs:tags('expressions'));
+					blocks			= { block };
 				})
 			end
 		end
