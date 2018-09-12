@@ -6,7 +6,10 @@ return function (utils)
 	local Value = eonz.class "eonz::introspect::Value"
 	do
 		function Value:init(opt)
+			opt = opt or {}
+
 			self._interactions	= {}
+			self._token		= opt.token
 		end
 
 		function Value:add_interaction(interaction)
@@ -15,6 +18,10 @@ return function (utils)
 
 		function Value:interactions()
 			return self._interactions
+		end
+
+		function Value:token()
+			return self._token
 		end
 	end
 
@@ -25,7 +32,8 @@ return function (utils)
 		ValueInteraction.INDEXED	= "indexed-interaction"
 
 		function ValueInteraction:init(opt)
-			self:__super(opt)
+			ValueInteraction:__super { self, opt }
+
 			self._scope		= assert(opt.scope)
 			self._what		= assert(opt.object or opt.what or opt.target)
 			self._method 		= assert(opt.method)
@@ -41,6 +49,10 @@ return function (utils)
 
 		function ValueInteraction:method()
 			return self._method
+		end
+
+		function ValueInteraction:token()
+			return self._token
 		end
 
 		function ValueInteraction:index()
@@ -71,10 +83,12 @@ return function (utils)
 		ValueInteraction.__tostring = ValueInteraction.name
 	end
 
-	local Variable = eonz.class { "eonz::introspect::Variable", extends = Value }
+	local Variable = eonz.class { name = "eonz::introspect::Variable", extends = Value }
 	do
 		function Variable:init(opt)
-			self:__super(opt)
+			opt.token = opt.token or opt.identifier
+			Variable:__super { self, opt }
+
 			self._scope		= assert(opt.scope)
 			self._category		= opt.category
 			self._name		= opt.name
@@ -95,7 +109,7 @@ return function (utils)
 		end
 
 		function Variable:category()
-			return self._category or self:is_global() and "global" or "local"
+			return self._category or (self:is_global() and "global" or "local")
 		end
 
 		function Variable:__tostring()
@@ -139,16 +153,9 @@ return function (utils)
 			end
 		end
 
-		function ScopeContext:log_raw(message)
-			io.write(tostring(message))
-		end
-
-		function ScopeContext:log(message)
-			self:log_raw(string.rep("│   ", self:depth()) .. tostring(message) .. "\n")
-		end
-
 		function ScopeContext:parent()
-			return self._parent
+			local parent = self._parent
+			return parent
 		end
 
 		function ScopeContext:is_root()
@@ -167,28 +174,25 @@ return function (utils)
 			return self._locals
 		end
 
-		local DECLARE_ARROW 		= "◀▬▬▬▬▬▬▬"
-		local READ_REFERENCE_ARROW 	= "▬▬▬▬▬▬▬▶"
-		local WRITE_REFERENCE_ARROW 	= "▬▬▬▶◀▬▬▬"
-		local READ_GLOBAL_ARROW 	= "▬▬[G]▬▬▶"
-		local WRITE_GLOBAL_ARROW 	= "◀▬▬[G]▬▬"
+		function ScopeContext:global_variables()
+			return self:get_root():scope_variables()
+		end
 
 		function ScopeContext:define_variable(token)
 			local variable
 
 			if eonz.get_class(token) == Variable then
 				variable = token
+				--print("remote: ",variable)
 			else
 				variable = Variable {
 					scope 		= self;
 					name 		= type(token) == 'string' 	and token or nil;
 					identifier	= type(token) ~= 'string' 	and support.get_identifier_token(token) or nil;
 				}
+				--print("created: ",variable)
 			end
 
-			if not self:is_root() then
-				self:log("╭─ " .. DECLARE_ARROW .. " " .. variable:name())
-			end
 
 			table.insert(self:scope_variables(), variable)
 
@@ -196,6 +200,7 @@ return function (utils)
 		end
 
 		function ScopeContext:resolve_variable(name)
+
 			for i, var in ipairs(self:scope_variables()) do
 				if (var:name() == name) then
 					return var, self:depth()
@@ -206,35 +211,6 @@ return function (utils)
 				return self:parent():resolve_variable(name)
 			else
 				return self:define_variable(name), self:depth()
-			end
-		end
-
-		function ScopeContext:log_reference(to, token, name, resolved, resolved_depth, direction)
-			local interface_arrow = direction == 'read' and READ_REFERENCE_ARROW or WRITE_REFERENCE_ARROW
-
-			if resolved:is_local() then
-				for i = 0, self:depth() - 1 do
-					if i < resolved_depth then
-						self:log_raw("│   ")
-					elseif i == resolved_depth then
-						self:log_raw("╰───")
-					else
-						self:log_raw("────")
-					end
-				end
-
-				local start_tag = (self:depth() == resolved_depth) and "╰─" or "┼─"
-				self:log_raw(start_tag .. " " .. interface_arrow .. " " .. name .. "\n")
-			else
-				interface_arrow = direction == 'read' and READ_GLOBAL_ARROW or WRITE_GLOBAL_ARROW
-
-				for i = 0, self:depth() - 1 do
-					self:log_raw("│   ")
-				end
-
-				self:log_raw("◯  " .. interface_arrow .. " " .. name .. " \n")
-
-
 			end
 		end
 
@@ -249,6 +225,8 @@ return function (utils)
 
 			assert(resolved, "resolved was nil for: " .. tostring(to))
 
+			--print("resolved:", resolved, token)
+
 			local method 	= nil
 
 			if info.direction == 'write' then
@@ -257,12 +235,11 @@ return function (utils)
 				method = ValueInteraction.REFERENCED
 			end
 
-			self:log_reference(to, token, name, resolved, resolved_depth, assert(info.direction))
-
 			local interaction = ValueInteraction {
 				scope	= self;
 				object	= assert(resolved);
 				method	= assert(method);
+				token	= token;
 			}
 
 			self:record_interaction(interaction)
@@ -292,13 +269,12 @@ return function (utils)
 				scope		= self;
 				target 		= value;
 				method 		= ValueInteraction.INDEXED;
-				index 		= args.value;
+				index 		= args.value
+				;
 				index_type	= args.type;
 			}
 
 			self:record_interaction(interaction)
-
-			print(interaction)
 
 			return interaction;
 		end
@@ -337,8 +313,6 @@ return function (utils)
 		function ScopeContext:analyze_expression(expression)
 			assert(expression:roles("expression"), "not an expression: " .. tostring(expression))
 
-			self:log("┆  " .. expression:name())
-
 			if expression:roles
 			{
 				'string-literal';
@@ -371,13 +345,7 @@ return function (utils)
 			})) then
 				self:analyze_expressions(assert(expression:tags("expressions")))
 			else
-				self:log("! !!!")
-				self:log("! !!!")
-				self:log("! !!!")
-				self:log(":  " .. "UNKNOWN EXPRESSION: " .. expression:name())
-				self:log("! !!!")
-				self:log("! !!!")
-				self:log("! !!!")
+				error("UNKNOWN EXPRESSION: " .. expression:name())
 			end
 		end
 
@@ -401,7 +369,6 @@ return function (utils)
 		end
 
 		function ScopeContext:analyze_function_statement(statement)
-			self:log(statement:name() .. " (function declaration)")
 
 			-- if the function is straight local, we need to create
 			-- a scope for it so it can call itself.
@@ -411,6 +378,8 @@ return function (utils)
 			local name 			= assert(statement:tags("name"))
 
 			if name:roles('local-variable-declaration') then
+
+				--print("local-variable-declaration")
 
 				-- function defined in local scope
 
@@ -425,7 +394,6 @@ return function (utils)
 				})
 
 			elseif name:roles("member-function-declaration") then
-
 				local is_method		= name:roles("method-function-declaration")
 				local considered 	= name
 				local names 		= {}
@@ -449,6 +417,8 @@ return function (utils)
 			elseif name:roles("function-declaration") then
 				-- function defined in global scope
 
+				--print("function-declaration")
+
 				local declared_globals = assert(statement:tags('declared_globals'))
 				assert(#declared_globals == 1)
 				local declared_global = declared_globals[1]
@@ -468,18 +438,21 @@ return function (utils)
 		function ScopeContext:analyze_statement_blocks(blocks, block_locals, inject_locals)
 			local block_parent_scope = self
 
-			if block_locals and #block_locals > 0 then
+			if block_locals or inject_locals then
 				block_parent_scope = ScopeContext {
 					parent = self;
 				}
 
-				for i, lvar in ipairs(block_locals) do
-					block_parent_scope:define_variable(assert(lvar:terminals()[1]))
+				if block_locals then
+					for i, lvar in ipairs(block_locals ) do
+						block_parent_scope:define_variable(assert(lvar:terminals()[1]))
+					end
 				end
 
 				if inject_locals then
 					for i, lvar in ipairs(inject_locals) do
 						lvar.scope = self
+						assert(not block_parent_scope:is_root())
 						block_parent_scope:define_variable(Variable(lvar))
 					end
 				end
@@ -495,8 +468,6 @@ return function (utils)
 		end
 
 		function ScopeContext:analyze_assignment(statement)
-			self:log(statement:name() .. " (assignment)")
-
 			-- expressions are evaluated in the pre-existing scope
 			self:analyze_expressions(assert(statement:tags('expressions')))
 
@@ -553,8 +524,6 @@ return function (utils)
 				return self:analyze_assignment(statement)
 			end
 
-			self:log(statement:name() .. " (general)")
-
 			-- Since we are not a function statement, the tags
 			-- 'expressions' and  'blocks' should be defined.
 
@@ -590,11 +559,15 @@ return function (utils)
 		end
 	end
 
-	function utils.analyze_references(node, opt)
+	function utils.analyze(chunk)
 		local chunk_scope	= ScopeContext {
 			root = true
 		}
-		local block = node:select { first = 'block-construct' }
+
+		local block = chunk:select { first = 'block-construct' }
+
 		chunk_scope:analyze_block(block)
+
+		return chunk_scope
 	end
 end
