@@ -13,7 +13,7 @@ local SyntaxNode 	= require 'eonz.lexer.syntax_node'
 local LuaParser = eonz.class { 	name	= "eonz::reflect::LuaParser",
 				extends	= GenericLuaParser 			}
 do
-	require('eonz.reflect.lua_parser.constants')(LuaParser)
+	require('eonz.reflect.parser.constants')(LuaParser)
 
 	function LuaParser:init(opt)
 		opt = eonz.options.from(opt, {
@@ -93,21 +93,21 @@ do
 		end
 	}
 
-	require('eonz.reflect.lua_parser.rules.identifiers')	(LuaParser, define_rule)
+	require('eonz.reflect.parser.rules.identifiers')	(LuaParser, define_rule)
 
 	-- handles rules for most statements, except those defined in the functions
 	-- module.
-	require('eonz.reflect.lua_parser.rules.statements')	(LuaParser, define_rule)
+	require('eonz.reflect.parser.rules.statements')	(LuaParser, define_rule)
 
 	-- handles rules that match expressions and parts of expressions, including
 	-- literals and table constants, but not including function invocation
-	require('eonz.reflect.lua_parser.rules.expressions')	(LuaParser, define_rule)
+	require('eonz.reflect.parser.rules.expressions')	(LuaParser, define_rule)
 
 	-- matches statements and expressions that define and invoke functions
-	require('eonz.reflect.lua_parser.rules.functions')	(LuaParser, define_rule)
+	require('eonz.reflect.parser.rules.functions')	(LuaParser, define_rule)
 
 	-- handles repeated lists of other rules, such as arguments, params, expressions
-	require('eonz.reflect.lua_parser.rules.lists')	(LuaParser, define_rule)
+	require('eonz.reflect.parser.rules.lists')	(LuaParser, define_rule)
 
 end
 

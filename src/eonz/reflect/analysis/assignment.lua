@@ -1,8 +1,8 @@
 local eonz 		= require 'eonz'
-local support 		= require 'eonz.reflect.utils.scope.support'
-local Value 		= require 'eonz.reflect.utils.value'
-local Variable 		= require 'eonz.reflect.utils.variable'
-local ValueReference 	= require 'eonz.reflect.utils.value_reference'
+local support 		= require 'eonz.reflect.analysis.scope.support'
+local Value 		= require 'eonz.reflect.analysis.value'
+local Variable 		= require 'eonz.reflect.analysis.variable'
+local ValueReference 	= require 'eonz.reflect.analysis.value_reference'
 
 local Assignment = eonz.class { name = "eonz::reflect::Assignment", extends = ValueReference }
 do

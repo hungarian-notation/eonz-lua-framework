@@ -13,21 +13,21 @@ do
 	---	The token from the source that "defines" this value.
 	function Value:init(opt)
 		opt = opt or {}
+		Value:__super { self, opt }
 
 		self._references	= {}
 		self._token		= opt.token
 		self._syntax		= opt.syntax
 		self._scope		= assert(opt.scope)
+
 		self._dynamic		= not not opt.dynamic
 		self._expandable	= not not opt.expandable
+		self._static		= not not opt.static
+
 		self._display		= opt.display
 		self._tautological	= opt.tautological
 
-		if not not opt.dynamic then
-			self._dynamic_category	= opt.dynamic_category or 'value'
-		end
-
-		if not not opt.static then
+		if self._static then
 			self._static		= true
 			self._type		= assert(opt.static_type)
 			self._static_value	= opt.static_value
@@ -39,11 +39,12 @@ do
 	end
 
 	function Value.make_dynamic(args)
-		return Value {
+		local DynamicValue		= require 'eonz.reflect.analysis.dynamic_value'
+
+		return DynamicValue {
 			scope 			= assert(args.scope);
 			syntax 			= assert(args.syntax, "must provide syntax rule for dynamic value");
 			type			= args.type;
-			dynamic			= true;
 			dynamic_category 	= args.dynamic_category or args.category;
 		}
 	end
@@ -93,10 +94,6 @@ do
 		return self._dynamic
 	end
 
-	function Value:dynamic_category()
-		return self._dynamic_category
-	end
-
 	function Value:scope()
 		return self._scope
 	end
@@ -118,8 +115,26 @@ do
 	--- Returns a list of interactions that were found to act on this value.
 	---
 	--- This may not be a complete listing,
-	function Value:references()
-		return self._references
+	function Value:references(where_predicate)
+		if not where_predicate then
+			return self._references
+		else
+			if type(where_predicate) == 'table' then
+				where_predicate = assert(where_predicate[1])
+			end
+
+			assert(type(where_predicate) == 'function')
+
+			local matched = {}
+
+			for i, reference in ipairs(self._references) do
+				if where_predicate(reference) then
+					matched[#matched + 1] = reference
+				end
+			end
+
+			return matched
+		end
 	end
 
 	--- The token that defines this value. This is present only if then
@@ -135,12 +150,6 @@ do
 	function Value:display()
 		return self._display
 			or self:is_tautology() 	and "«tautology»"
-			or self:is_dynamic() 	and
-				((self:known_type() and "«"
-				 	.. self:value_type()
-					.. " " or "«dynamic ")
-					.. self:dynamic_category()
-					.. "»")
 			or self:is_static() and "«static " .. self:value_type() .. "»"
 			or self:token() and "token: " .. tostring(self:token())
 			or self:syntax() and "syntax: " .. tostring(self:syntax())

@@ -2,11 +2,11 @@ return function(ScopeContext)
 	local eonz 		= require 'eonz'
 	local table		= eonz.pf.table;
 
-	local support 		= require 'eonz.reflect.utils.scope.support'
-	local Value 		= require 'eonz.reflect.utils.value'
-	local ValueReference 	= require 'eonz.reflect.utils.value_reference'
-	local IndexingReference = require 'eonz.reflect.utils.indexing_reference'
-	local Variable 		= require 'eonz.reflect.utils.variable'
+	local support 		= require 'eonz.reflect.analysis.scope.support'
+	local Value 		= require 'eonz.reflect.analysis.value'
+	local ValueReference 	= require 'eonz.reflect.analysis.value_reference'
+	local IndexingReference = require 'eonz.reflect.analysis.indexing_reference'
+	local Variable 		= require 'eonz.reflect.analysis.variable'
 
 
 
@@ -244,7 +244,11 @@ return function(ScopeContext)
 		-- first, we analyze the expressions
 		self:analyze_expressions(expressions);
 		-- then, we analyze the blocks
-		self:analyze_statement_blocks(blocks, block_locals, inject_locals);
+		self:analyze_statement_blocks(blocks, block_locals, {
+			inject_locals		= inject_locals;
+			locals_category 	= "parameter";
+			closure			= true;
+		});
 	end
 
 	function ScopeContext:analyze_function_statement(statement)
@@ -256,6 +260,11 @@ return function(ScopeContext)
 		local statement_scope 		= self
 		local name 			= assert(statement:tags("name"))
 
+		local assignment_target		= nil
+		local assignment_value		= nil
+
+
+
 		if name:roles('local-variable-declaration') then
 
 			--print("local-variable-declaration")
@@ -266,26 +275,41 @@ return function(ScopeContext)
 				parent 		= self
 			}
 
-			statement_scope:define_variable(name)
-
-			statement_scope:create_reference(name, {
-				direction 	= "write";
-			})
+			assignment_target = statement_scope:define_variable(name)
 
 		elseif name:roles("member-function-declaration") then
 			local is_method		= name:roles("method-function-declaration")
 			local considered 	= name
 			local names 		= {}
+			local expressions	= {}
 
-			while not considered:roles("variable-reference") do
-				assert(considered:roles("index-construct"))
-				table.insert(names, 1, assert(considered:tags("index")))
-				considered = assert(considered:tags("target"))
+			local continue = true;
+
+			while continue do
+				print('considering:', considered)
+
+				--assert(considered:roles("index-construct"))
+
+				table.insert(expressions, 	1, assert(considered))
+				table.insert(names, 		1, assert(considered:tags("name")))
+
+				continue 	= not considered:roles("variable-reference")
+				considered 	= not continue and considered or assert(considered:tags("target"))
 			end
 
-			statement_scope:create_reference(considered,  {
-				direction 	= "read";
-			})
+			assignment_target = statement_scope:create_reference(considered)
+
+			for i = 2, #names do
+				local index = names[i]
+				assignment_target = self:create_index_reference(assignment_target, {
+					value		= support.get_identifier_token(index):text();
+					type		= 'string';
+					identifier	= support.get_identifier_token(index);
+					token 		= support.get_identifier_token(index);
+					method		= not not expressions[i]:roles('method-identifier-index-expression');
+					syntax		= expressions[i];
+				})
+			end
 
 			if is_method then
 				inject_locals = {
@@ -300,22 +324,29 @@ return function(ScopeContext)
 
 			local declared_globals = assert(statement:tags('declared_globals'))
 			assert(#declared_globals == 1)
-			local declared_global = declared_globals[1]
 
-			statement_scope:create_reference(declared_global,  {
-				direction = "write";
-			})
+			assignment_target = statement_scope:create_reference(declared_globals[1])
 		else
 			error("UNKNOWN FUNCTION NAME ROLE: " .. name:name())
 		end
+
+		statement_scope:create_assignment(assignment_target, Value.make_dynamic {
+			scope 	= self;
+			syntax 	= statement;
+			type	= 'function';
+		})
 
 		statement_scope:analyze_function_body(assert(statement:tags('body')), inject_locals)
 
 		return statement_scope
 	end
 
-	function ScopeContext:analyze_statement_blocks(blocks, block_locals, inject_locals)
-		local block_parent_scope = self
+	function ScopeContext:analyze_statement_blocks(blocks, block_locals, args)
+		args = args or {}
+
+		local block_parent_scope 	= self
+		local inject_locals 		= args.inject_locals
+		local locals_category		= args.locals_category or 'parameter';
 
 		if block_locals or inject_locals then
 			block_parent_scope = ScopeContext {
@@ -324,7 +355,9 @@ return function(ScopeContext)
 
 			if block_locals then
 				for i, lvar in ipairs(block_locals ) do
-					block_parent_scope:define_variable(assert(lvar:terminals()[1]))
+					block_parent_scope:define_variable(assert(lvar:terminals()[1]), {
+						category = locals_category;
+					})
 				end
 			end
 
@@ -339,7 +372,8 @@ return function(ScopeContext)
 
 		for i, block in ipairs(blocks) do
 			local block_scope = ScopeContext {
-				parent = block_parent_scope
+				parent 	= block_parent_scope;
+				closure	= args.closure;
 			}
 
 			block_scope:analyze_block(block)
@@ -389,6 +423,22 @@ return function(ScopeContext)
 
 		for i = 1, direct do
 			statement_scope:create_assignment(targets[i], values[i])
+		end
+
+		local varargs = direct > 0 and values[direct]:is_expandable()
+
+		for i = direct + 1, #targets do
+			if varargs then
+				statement_scope:create_assignment(targets[i], Value.make_dynamic {
+					scope 	= statement_scope;
+					syntax 	= statement;
+				})
+			else
+				statement_scope:create_assignment(targets[i], Value.make_dynamic {
+					scope 	= statement_scope;
+					syntax 	= statement;
+				})
+			end
 		end
 
 		-- TODO: a representation of the concept of "the Nth value

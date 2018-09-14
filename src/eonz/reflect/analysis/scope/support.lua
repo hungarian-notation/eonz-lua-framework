@@ -4,13 +4,16 @@ local Token		= eonz.lexer.Token
 local SyntaxNode	= eonz.lexer.SyntaxNode
 local get_class		= eonz.get_class
 
+
 local function is_syntax(value)
 	return get_class(value) == SyntaxNode
 end
 
+
 local function is_token(value)
 	return get_class(value) == Token
 end
+
 
 local function get_identifier_token(value)
 	if is_syntax(value) then
@@ -26,9 +29,11 @@ local function get_identifier_token(value)
 	end
 end
 
+
 local function get_identifier_text(value)
 	return get_identifier_token(value):text()
 end
+
 
 return {
 	is_syntax 		= is_syntax;

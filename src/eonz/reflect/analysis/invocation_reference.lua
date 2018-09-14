@@ -1,7 +1,7 @@
 local eonz 		= require 'eonz'
-local support 		= require 'eonz.reflect.utils.scope.support'
-local Value 		= require 'eonz.reflect.utils.value'
-local ValueReference 	= require 'eonz.reflect.utils.value_reference'
+local support 		= require 'eonz.reflect.analysis.scope.support'
+local Value 		= require 'eonz.reflect.analysis.value'
+local ValueReference 	= require 'eonz.reflect.analysis.value_reference'
 
 local InvocationReference = eonz.class { name = "eonz::reflect::InvocationReference", extends = ValueReference }
 do
