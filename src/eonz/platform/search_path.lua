@@ -1,5 +1,6 @@
 local WeightedAlternative 	= require 'eonz.weighted-alternative'
 local options			= require 'eonz.options'
+local unpack			= require 'eonz.unpack'
 
 return function(Platform)
 

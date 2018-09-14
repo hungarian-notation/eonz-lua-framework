@@ -37,6 +37,15 @@ return function(LuaParser, define_rule)
 		end
 	}
 
+	local CONTROL_FLOW_CONDITION_ROLES = {
+		'control-flow-condition';
+		'control-flow-expression';
+		'expression';
+		'rvalue-expression';
+		'control-flow';
+		'wrapped-expression';
+	}
+
 	define_rule { name = 'statement',
 		function (self)
 			self:expect(LuaParser.STATEMENT_PREDICT_SET, "invalid token for start of statement")
@@ -98,18 +107,14 @@ return function(LuaParser, define_rule)
 			elseif self:peek('keyword.while') then 							self:alternative "while"
 				local while_kw, test, do_kw, block, end_kw =
 					self:consume('keyword.while'),
-
-					LuaParser.flatten_varargs(self:expression()):wrap {
-						'control-flow-condition';
-						'control-flow-expression';
-						'expression';
-						'rvalue-expression';
-						'control-flow';
-					},
-
+					self:expression(),
 					self:consume('keyword.do'),
 					self:block(),
 					self:consume('keyword.end');
+
+					test = LuaParser.flatten_varargs(test):wrap(CONTROL_FLOW_CONDITION_ROLES, {
+						expression = test
+					})
 
 				block = block:extend {
 					'while-block-construct', 'control-flow-element', 'control-flow'
@@ -131,13 +136,11 @@ return function(LuaParser, define_rule)
 					self:consume('keyword.repeat'),
 					self:block(),
 					self:consume('keyword.until'),
-					LuaParser.flatten_varargs(self:expression()):wrap {
-						'control-flow-condition';
-						'control-flow-expression';
-						'expression';
-						'rvalue-expression';
-						'control-flow';
-					}
+					self:expression();
+
+				expr = LuaParser.flatten_varargs(expr):wrap(CONTROL_FLOW_CONDITION_ROLES, {
+					expression = expr
+				})
 
 				block = block:extend {
 					'repeat-block-construct', 'control-flow-element', 'control-flow'
@@ -360,14 +363,13 @@ return function(LuaParser, define_rule)
 
 			local function consume_if_then()
 				local form 	=	self:consume({'keyword.if', 'keyword.elseif'})
-				local test 	= 	LuaParser.flatten_varargs(self:expression()):wrap {
-					'control-flow-condition';
-					'control-flow-expression';
-					'expression';
-					'rvalue-expression';
-					'control-flow';
-				}
-							self:consume('keyword.then')
+				local test 	= 	self:expression();
+
+				test = LuaParser.flatten_varargs(test):wrap (CONTROL_FLOW_CONDITION_ROLES, {
+					expression = test
+				});
+
+				self:consume('keyword.then')
 				local block 	= 	self:block()
 
 				return SyntaxNode({
@@ -434,6 +436,7 @@ return function(LuaParser, define_rule)
 		end
 	}
 
+
 	define_rule { name = 'for_statement',
 		function (self)
 			local kw = self:consume('keyword.for')
@@ -441,35 +444,35 @@ return function(LuaParser, define_rule)
 			if self:peek('identifier', 1) and self:peek('=', 2) then
 				-- for i=x,y,z do
 				local iter = 	self:variable_declaration{
-					'for-variable-declaration',
-					'control-flow-variable',
-					'control-flow',
-					'declaration'
-				}
-						self:consume('=')
-				local start = 	LuaParser.flatten_varargs(self:expression()):wrap {
-					'control-flow-condition';
-					'control-flow-expression';
-					'expression';
-					'rvalue-expression';
+					'for-variable-declaration';
+					'control-flow-variable';
 					'control-flow';
+					'declaration';
 				}
-						self:consume(',')
-				local stop = 	LuaParser.flatten_varargs(self:expression()):wrap {
-					'control-flow-condition';
-					'control-flow-expression';
-					'expression';
-					'rvalue-expression';
-					'control-flow';
-				}
-				local step = 	self:consume_optional(',')
-					and 	LuaParser.flatten_varargs(self:expression()):wrap {
-						'control-flow-condition';
-						'control-flow-expression';
-						'expression';
-						'rvalue-expression';
-						'control-flow';
-					}
+
+				self:consume('=')
+
+				local start_expr = self:expression()
+				local start = 	LuaParser.flatten_varargs(start_expr):wrap(CONTROL_FLOW_CONDITION_ROLES, {
+					expression = start_expr
+				})
+
+				self:consume(',')
+
+				local stop_expr = self:expression()
+				local stop = 	LuaParser.flatten_varargs(stop_expr):wrap(CONTROL_FLOW_CONDITION_ROLES, {
+					expression = stop_expr
+				})
+
+				local step = nil
+
+				if self:consume_optional(',') then
+					local step_expr = self:expression()
+					step = 	LuaParser.flatten_varargs(step_expr):wrap(CONTROL_FLOW_CONDITION_ROLES, {
+						expression = step_expr
+					})
+				end
+
 						self:consume('keyword.do')
 				local block =	self:block()
 						self:consume('keyword.end')

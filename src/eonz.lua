@@ -10,10 +10,21 @@ function EONZ.debug(...)
 end
 
 function EONZ.configure(opt)
+
 	require('eonz.polyfill')()
 
-	EONZ.options 	= require 'eonz.options'
+	-- TODO: actual global polyfill should not be required for the core
+	-- library to function. The EONZ.lib value should be a polyfilled
+	-- version of the standard library, but the modification of the actual
+	-- global table should be optional and configurable.
 
+	EONZ.table 	= table
+	EONZ.string	= string
+	EONZ.package	= package
+	EONZ.io		= io
+	EONZ.math	= math
+
+	EONZ.options 	= require 'eonz.options'
 	EONZ.objects 	= require 'eonz.objects'
 	EONZ.class	= EONZ.objects.class
 	EONZ.get_class	= EONZ.objects.get_class

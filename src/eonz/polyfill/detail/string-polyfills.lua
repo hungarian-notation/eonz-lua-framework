@@ -3,6 +3,8 @@
 	algorithm that breaks up a string at individual delimiter characters.
 --]]
 
+local unpack = require "eonz.unpack"
+
 local function split_impl(str, sep, opt)
 	options = require('eonz.options').from(opt, {
 		max = -1

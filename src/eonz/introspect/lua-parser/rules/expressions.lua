@@ -46,8 +46,8 @@ return function(LuaParser, define_rule)
 			},{
 				expr:tags('op')
 			},{
-				arity = 2;
-				op = expr:tags('op');
+				arity 	= 2;
+				op 	= expr:tags('op');
 			}))
 
 			expr = expr:tags('right')
@@ -57,8 +57,8 @@ return function(LuaParser, define_rule)
 			},{
 				expr:tags('op')
 			},{
-				arity = 1;
-				op = expr:tags('op');
+				arity 	= 1;
+				op 	= expr:tags('op');
 			}))
 
 			expr = expr:tags('operand')
@@ -350,7 +350,7 @@ return function(LuaParser, define_rule)
 						},{
 							tok
 						},{
-							value 		= (tok:text() == 'true');
+							value 		= (tok:text() == 'true') and true or false;
 							constexpr 	= 'boolean';
 						})
 					end
@@ -505,7 +505,7 @@ return function(LuaParser, define_rule)
 				}
 
 				return SyntaxNode({
-					'atomic-expression', 'expression', 'rvalue-expression'
+					'atomic-expression', 'expression', 'rvalue-expression', 'wrapped-expression'
 				}, expr, {
 					expression 	= expr[2];
 					expressions 	= { expr[2] };

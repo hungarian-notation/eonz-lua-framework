@@ -1,4 +1,6 @@
 
+local unpack = require "eonz.unpack"
+
 test['string.split(...)'] = function()
 	local string = ",,,this text,is,, a , string"
 	local split = string.split(string, ",")

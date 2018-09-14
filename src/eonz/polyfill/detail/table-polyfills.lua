@@ -344,8 +344,8 @@ if _G['unpack'] and not table.unpack then
 	table.insert(polyfills, {name = 'unpack', impl=_G['unpack']})
 end
 
-if table.unpack and not _G['unpack'] then
-	_G['unpack'] = table.unpack
-end
+--if table.unpack and not _G['unpack'] then
+--	_G['unpack'] = table.unpack
+--end
 
 return polyfills
