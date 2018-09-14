@@ -1,4 +1,6 @@
-local eonz = require 'eonz'
+local eonz 		= require 'eonz'
+local table 		= eonz.pf.table
+local string		= eonz.pf.string
 
 local Source = eonz.class {
 	name 	= 'eonz::lexer::info::Source'

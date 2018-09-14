@@ -1,5 +1,7 @@
 return function(ScopeContext)
 	local eonz 		= require 'eonz'
+	local table		= eonz.pf.table;
+
 	local support 		= require 'eonz.reflect.utils.scope.support'
 	local Value 		= require 'eonz.reflect.utils.value'
 	local ValueReference 	= require 'eonz.reflect.utils.value_reference'

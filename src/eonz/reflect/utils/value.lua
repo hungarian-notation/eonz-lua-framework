@@ -1,4 +1,6 @@
 local eonz = require 'eonz'
+local table = eonz.pf.table
+
 
 local Value = eonz.class "eonz::reflect::Value"
 do
@@ -12,7 +14,7 @@ do
 	function Value:init(opt)
 		opt = opt or {}
 
-		self._references	= eonz.table.array {}
+		self._references	= {}
 		self._token		= opt.token
 		self._syntax		= opt.syntax
 		self._scope		= assert(opt.scope)
@@ -100,16 +102,16 @@ do
 	end
 
 	function Value:add_reference(reference)
-		if not self._references:contains(reference) then
-			self._references:insert(reference)
+		if not table.contains(self._references, reference) then
+			table.insert(self._references, reference)
 		end
 	end
 
 	function Value:remove_reference(reference)
-		local position = self._references:index_of(reference)
+		local position = table.index_of(self._references, reference)
 
 		if position then
-			assert(rawequal(self._references:remove(position), reference))
+			assert(rawequal(table.remove(self._references, position), reference))
 		end
 	end
 

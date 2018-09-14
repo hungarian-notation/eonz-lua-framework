@@ -1,3 +1,7 @@
+local pf	= require "eonz.polyfill"
+local table 	= pf.extended 'table'
+local string	= pf.extended 'string'
+
 return function(Platform)
 	-- This module should not be required directly, it is a component of
 	-- eonz.platform and is included in that module.

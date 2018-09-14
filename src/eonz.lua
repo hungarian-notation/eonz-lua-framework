@@ -11,18 +11,19 @@ end
 
 function EONZ.configure(opt)
 
-	require('eonz.polyfill')()
+	local pf 	= require('eonz.polyfill')
+	EONZ.pf 	= pf
 
 	-- TODO: actual global polyfill should not be required for the core
 	-- library to function. The EONZ.lib value should be a polyfilled
 	-- version of the standard library, but the modification of the actual
 	-- global table should be optional and configurable.
 
-	EONZ.table 	= table
-	EONZ.string	= string
-	EONZ.package	= package
-	EONZ.io		= io
-	EONZ.math	= math
+	EONZ.table 	= EONZ.pf.table
+	EONZ.string	= EONZ.pf.string
+	EONZ.package	= EONZ.pf.package
+	EONZ.io		= EONZ.pf.io
+	EONZ.math	= EONZ.pf.math
 
 	EONZ.options 	= require 'eonz.options'
 	EONZ.objects 	= require 'eonz.objects'
@@ -47,7 +48,7 @@ function EONZ.configure(opt)
 		end
 
 		local p 	= EONZ.platform
-		local roots 	= table.copy(opt.path_roots or {})
+		local roots 	= EONZ.table.copy(opt.path_roots or {})
 
 		if EONZ.RT then
 			EONZ.debug "expanding package roots"

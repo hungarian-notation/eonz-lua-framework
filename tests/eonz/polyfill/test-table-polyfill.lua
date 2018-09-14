@@ -1,3 +1,6 @@
+local pf	= require 'eonz.polyfill'
+local table 	= pf.extended 'table'
+local string	= pf.extended 'string'
 
 test["table.equals(a, b) arrays"] = function()
 
@@ -61,33 +64,33 @@ test["table.equals(a, b, true) recursive mode"] = function()
 end
 
 test["table.slice()"] = function()
-	local a = table.array { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 	}
-	local b = table.array { 	 4, 5, 6, 7, 8, 9, 10, 11 	}
-	local c = 	      { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 	}
+	local a = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 	}
+	local b = { 	 4, 5, 6, 7, 8, 9, 10, 11 		}
+	local c = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 	}
 
 	assert_equals(false, a == b)
 	assert_equals(false, a == c)
 	assert_equals(false, table.equals(a, b))
 	assert_equals(true,  table.equals(a, c))
-	assert_equals(true,  table.equals(a:slice(4, 11), b))
-	assert_equals(true,  a:slice(4, 11) == b)
-	assert_equals(true,  table.slice(c, -9, -2) == b)
+	assert_equals(true,  table.equals(table.slice(a, 4, 11), b))
+	assert_equals(true,  table.equals(table.slice(a, 4, 11), b))
+	assert_equals(true,  table.equals(table.slice(c, -9, -2), b))
 
 end
 
 test["table.slice() graceful failure when out of bounds"] = function()
 	do
-		local array = table.array { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 }
-		local expected = { 5, 6, 7, 8, 9, 10, 11, 12 }
-		local actual = array:slice(5, 100)
+		local array 	= { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 }
+		local expected 	= { 5, 6, 7, 8, 9, 10, 11, 12 }
+		local actual 	= table.slice(array, 5, 100)
 
 		assert_table_equals(expected, actual)
 	end
 
 	do
-		local array = table.array { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 }
+		local array = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 }
 		local expected = { }
-		local actual = array:slice(100, 105)
+		local actual = table.slice(array, 100, 105)
 
 		assert_table_equals(expected, actual)
 	end
@@ -98,45 +101,41 @@ test["table.index == table.index_of"] = function()
 end
 
 test["table.reverse()"] = function()
-	local array 	= table.array { 1, 2, 3, 4, 5 }
+	local array 	= { 1, 2, 3, 4, 5 }
 	local expected 	= { 5, 4, 3, 2, 1 }
-	local actual  	= array:reverse()
+	local actual  	= table.reverse(array)
 
 	assert_table_equals(expected, actual)
-	assert_same(table, getmetatable(actual))
 end
 
 test["table.slice() end index before start index"] = function()
-	local array 	= table.array { 1, 2, 3, 4, 5 }
+	local array 	= { 1, 2, 3, 4, 5 }
 
 	local expected_1 	= {}
-	local actual_1 		= array:slice(5, 1)
+	local actual_1 		= table.slice(array, 5, 1)
 	local expected_2 	= { 5, 4, 3, 2, 1 }
-	local actual_2 		= array:slice(1, 5):reverse()
+	local actual_2 		= table.reverse(table.slice(array, 1, 5))
 
 	assert_table_equals(expected_1, actual_1)
-	assert_same(table, getmetatable(actual_1))
-
 	assert_table_equals(expected_2, actual_2)
-	assert_same(table, getmetatable(actual_2))
 end
 
 test["table.join() applies metamethod?"] = function()
-	local a = table.array { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 	}
-	local b = 	      { 1, 2, 3, 4, 5, 6			}
-	local c = 	      { 		  7, 8, 9, 10, 11, 12 	}
+	local a = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 	}
+	local b = { 1, 2, 3, 4, 5, 6			}
+	local c = { 		  7, 8, 9, 10, 11, 12 	}
 
-	assert_equals(true,  table.equals(a:slice(1, 6), b))
-	assert_equals(true,  table.equals(a:slice(7, 12), c))
-	assert_equals(true,  table.join(b, c) == a)
+	assert_equals(true,  table.equals(table.slice(a, 1, 6), b))
+	assert_equals(true,  table.equals(table.slice(a, 7, 12), c))
+	assert_equals(true,  table.equals(table.join(b, c), a))
 
 end
 
 test["table.is_array(arr)"] = function()
-	local a = table.array { 1, 2, "3", 4 }
+	local a = { 1, 2, "3", 4 }
 	local b = { 1, 2, "3", 4 }
 	local c = { 1, 2, "3", 4, key="value" }
-	local d = table.array { 1, 2, "3", 4, ["5"]="value" }
+	local d = { 1, 2, "3", 4, ["5"]="value" }
 	local e = {}
 
 	assert_equals(false,  	table.is_array(nil))
@@ -144,30 +143,30 @@ test["table.is_array(arr)"] = function()
 	assert_equals(false,  	table.is_array(1000))
 	assert_equals(false,  	table.is_array(true))
 
-	assert_equals(true, 	a:is_array())
+	assert_equals(true, 	table.is_array(a))
 	assert_equals(true, 	table.is_array(a))
 	assert_equals(true,	table.is_array(b))
 	assert_equals(false, 	table.is_array(c))
-	assert_equals(false, 	d:is_array())
+	assert_equals(false, 	table.is_array(d))
 	assert_equals(false, 	table.is_array(d))
 	assert_equals(true, 	table.is_array(e))
 end
 
 test["array table.tostring() behavior"] = function()
-	local a = table.array { 1, 2, "3", 4 }
-	local a_alt = table.array { 1, ["2"]=2, "3", 4 }
-	local b = table.array {}
-	local c = table.array { nil }
+	local a = { 1, 2, "3", 4 }
+	local a_alt = { 1, ["2"]=2, "3", 4 }
+	local b = {}
+	local c = { nil }
 
-	local d = table.array {
+	local d = {
 		"this", "is", "an",
 		setmetatable({},{__tostring=function() return "\"array\"" end}),
 		"of strings"
 	}
 
-	local e = table.array { { 1, 2 }, "3", "4", { { 5 }, { 6 }}}
+	local e = { { 1, 2 }, "3", "4", { { 5 }, { 6 }}}
 
-	assert_equals("[1, 2, \"3\", 4]", tostring(a))
+	assert_equals("[1, 2, \"3\", 4]",  table.tostring(a))
 
 	assert_equals("{[1]=1, [2]=2, [3]=\"3\", [4]=4}", table.tostring(a, "~arrays"))
 	assert_equals("{[1]=1, [\"2\"]=2, [2]=\"3\", [3]=4}", table.tostring(a_alt, "~arrays"))
@@ -175,13 +174,13 @@ test["array table.tostring() behavior"] = function()
 
 
 	assert_equals("[1, 2, \"3\", 4]", table.tostring(a))
-	assert_equals("[]", tostring(b))
-	assert_equals("[]", tostring(c))
-	assert_equals('["this", "is", "an", "array", "of strings"]', tostring(d))
+	assert_equals("[]", table.tostring(b))
+	assert_equals("[]", table.tostring(c))
+	assert_equals('["this", "is", "an", "array", "of strings"]',  table.tostring(d))
 
-	assert_equals('[[1, 2], "3", "4", [[5], [6]]]', tostring(e))
+	assert_equals('[[1, 2], "3", "4", [[5], [6]]]',  table.tostring(e))
 
-	assert_equals(([==[
+	assert_equals(string.trim([==[
 [
   [
     1,
@@ -198,16 +197,16 @@ test["array table.tostring() behavior"] = function()
     ]
   ]
 ]
-	]==]):trim(), table.tostring(e, {"pretty"}))
+	]==]), table.tostring(e, {"pretty"}))
 
 end
 
 test["table.tostring() behavior"] = function()
 
-	local a = table.array { { 1, 2 }, "3", "4", { { 5 }, { 6 }}}
+	local a = { { 1, 2 }, "3", "4", { { 5 }, { 6 }}}
 	local b = { 1, 2, 3, 4, { key = "value" }}
 
-	assert_equals('[[1, 2], "3", "4", [[5], [6]]]', tostring(a))
+	assert_equals('[[1, 2], "3", "4", [[5], [6]]]', table.tostring(a))
 	assert_equals('[1, 2, 3, 4, {key="value"}]', table.tostring(b))
 
 end
@@ -231,15 +230,16 @@ test["table.merge()"] = function()
 	assert_raw_equals(result, base)
 end
 
+--[[
 test["table.array, table.__eq (table as metatable)"] = function()
 
-	local a = table.array { 1, 2, 3, 4, 5 }
+	local a = { 1, 2, 3, 4, 5 }
 	local b = setmetatable({ 1, 2, 3, 4, 5 }, table)
-	local c = table.array { "1", "2", "3", "4", "5" }
+	local c = { "1", "2", "3", "4", "5" }
 	local d = { 1, 2, 3, 4, 5 }
 
-	assert_equals(true, 	a == b)
-	assert_equals(true, 	b == a)
+	assert_equals(true, 	table.equals(a, b))
+	assert_equals(true, 	table.equals(b, a))
 
 	-- metamethod is not reliably invoked across all versions, so this
 	-- must fail
@@ -265,6 +265,7 @@ test["table.array, table.__eq (table as metatable)"] = function()
 	assert_equals(false, 	b == nil)
 	assert_equals(false, 	c == nil)
 end
+--]]
 
 test["table.equals(a, b) with mixed keys and array"] = function()
 

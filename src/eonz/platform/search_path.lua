@@ -1,3 +1,7 @@
+local pf	= require "eonz.polyfill"
+local table 	= pf.extended 'table'
+local string	= pf.extended 'string'
+
 local WeightedAlternative 	= require 'eonz.weighted_alternative'
 local options			= require 'eonz.options'
 local unpack			= require 'eonz.unpack'

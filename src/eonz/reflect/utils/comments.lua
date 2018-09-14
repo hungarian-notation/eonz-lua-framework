@@ -4,14 +4,14 @@ return function (utils)
 	function utils.process_comment(comment)
 		if comment:id('comment.line') then
 			comment = comment:text():match(COMMENT_CLEANUP_PATTERN)
-			comment = comment and comment:trim()
+			comment = comment and string.trim(comment)
 			return { comment or "" }
 		elseif comment:id('comment.multiline') then
 			local 	inner = comment:text():sub(comment:captures(2) - (comment:start() - 1), comment:captures(3) - (comment:start()))
 				inner = inner:match(COMMENT_CLEANUP_PATTERN)
 				inner = string.split(inner, "[\r]?[\n]")
 			for i, str in ipairs(inner) do
-				inner[i] = str:trim() or ""
+				inner[i] = string.trim(str) or ""
 			end
 			return 	inner
 		end

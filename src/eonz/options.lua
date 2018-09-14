@@ -4,6 +4,8 @@
 
 local merge_tables 	= require('eonz.polyfill.detail.merge')
 local options 		= {}
+local pf		= require "eonz.polyfill"
+local string_split	= pf.get_extension('string', 'split')
 
 -- options can be supplied as a table or a single string
 -- if supplied as a string, it is split into flags on any
@@ -28,7 +30,7 @@ function options.from(value, defaults)
 	if type(value) == 'nil' then
 		value = {}
 	elseif type(value) == 'string' then
-		value = string.split(value, " \r\n\t,;", {})
+		value = string_split(value, " \r\n\t,;", {})
 	elseif type(value) ~= 'table' then
 		error('options should be either a table or a single string flag')
 	end

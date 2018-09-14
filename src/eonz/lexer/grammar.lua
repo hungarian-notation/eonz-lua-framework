@@ -1,4 +1,7 @@
 local eonz 		= require 'eonz'
+local table 		= eonz.pf.table
+local string		= eonz.pf.string
+
 local Production 	= require 'eonz.lexer.production'
 
 local Grammar = eonz.class "eonz::lexer::Grammar"
@@ -6,7 +9,7 @@ do
 	function Grammar.new(productions, opt)
 		for i, prod in ipairs(productions) do
 			if getmetatable(prod) ~= Production then
-				local id, alts, opt = table.unpack(prod)
+				local id, alts, opt = eonz.table.unpack(prod)
 
 				-- use any key-value pairs defined directly in
 				-- the production table as arguments to the

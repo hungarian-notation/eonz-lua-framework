@@ -1,9 +1,12 @@
+local pf	= require 'eonz.polyfill'
+local table 	= pf.extended 'table'
+local string	= pf.extended 'string'
 
 local unpack = require "eonz.unpack"
 
 test['string.split(...)'] = function()
-	local string = ",,,this text,is,, a , string"
-	local split = string.split(string, ",")
+	local str 	= ",,,this text,is,, a , string"
+	local split 	= string.split(str, ",")
 
 	assert_exists(split, 'split returned nil')
 	assert_equals(4, #split)
@@ -14,8 +17,8 @@ test['string.split(...)'] = function()
 end
 
 test['string.split(a, b, {"keep"})'] = function()
-	local string = ",,,this text,is,, a , string"
-	local split = string.split(string, ",", {keep = true})
+	local str 	= ",,,this text,is,, a , string"
+	local split	= string.split(str, ",", {keep = true})
 
 	assert_exists(split, 'split returned nil')
 	assert_equals(8, #split, "number of resulting elements")
@@ -30,8 +33,8 @@ test['string.split(a, b, {"keep"})'] = function()
 end
 
 test['string.split(a, b, {"empties"})'] = function()
-	local string = ",,,this text,is,, a , string"
-	local split = string.split(string, ",", {empties = true})
+	local str = ",,,this text,is,, a , string"
+	local split = string.split(str, ",", {empties = true})
 
 	assert_exists(split, 'split returned nil')
 	assert_equals(8, #split, "number of resulting elements")
@@ -46,7 +49,7 @@ test['string.split(a, b, {"empties"})'] = function()
 end
 
 test['string.split(a, b, { max=n }) split with maximum segments'] = function()
-	local string = "split;ends;here;these;should;be;one;segment"
+	local str = "split;ends;here;these;should;be;one;segment"
 
 	local expected = {
 		"split",
@@ -55,7 +58,7 @@ test['string.split(a, b, { max=n }) split with maximum segments'] = function()
 		"these;should;be;one;segment"
 	}
 
-	assert_table_equals(expected, string.split(string, ";", { max = 4 }))
+	assert_table_equals(expected, string.split(str, ";", { max = 4 }))
 end
 
 test['string.split() error on nil input string'] = function()
@@ -68,8 +71,8 @@ test['string.split() error on nil input string'] = function()
 end
 
 test['string.split(a, ", "); multi-character delimiter'] = function()
-	local string = ",,,this text,is,, a , string"
-	local split = string.split(string, ", ")
+	local str 	= ",,,this text,is,, a , string"
+	local split 	= string.split(str, ", ")
 
 	assert_exists(split, 'split returned nil')
 	assert_equals(5, #split)
@@ -81,8 +84,8 @@ test['string.split(a, ", "); multi-character delimiter'] = function()
 end
 
 test['string.split("", ...); empty input string'] = function()
-	local string = ""
-	local split = string.split(string, ",")
+	local str = ""
+	local split = string.split(str, ",")
 
 	assert_exists(split, 'split returned nil')
 	assert_equals(0, #split)
@@ -92,8 +95,8 @@ test['string.split(a, ""); empty pattern special case'] = function()
 	-- as a special case, a zero-length delimiter should split the string
 	-- into an array of characters
 
-	local string = "Hello"
-	local split = string.split(string, "")
+	local str = "Hello"
+	local split = string.split(str, "")
 
 	assert_exists(split, 'split returned nil')
 	assert_equals(5, #split)

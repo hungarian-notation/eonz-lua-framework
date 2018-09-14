@@ -1,4 +1,6 @@
 local eonz 		= require 'eonz'
+local table 		= eonz.pf.table
+local string		= eonz.pf.string
 
 local Stream 		= require 'eonz.lexer.stream'
 local Context 		= require 'eonz.lexer.context'

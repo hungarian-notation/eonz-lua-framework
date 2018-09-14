@@ -1,6 +1,10 @@
 local console	= require('eonz.console')
 local styles 	= require('console-style')
 
+local pf 	= require 'eonz.polyfill'
+local table 	= pf.table
+local string	= pf.string
+
 local dsl = {}
 local types = { 'nil', 'number', 'boolean', 'string', 'table', 'function', 'thread', 'userdata' }
 
@@ -90,9 +94,9 @@ function dsl.assert_error(...)
 	if type(error) == 'string' then
 		-- remove the location string from the error message
 
-		local parts = error:split(":", { max=3 })
+		local parts = string.split(error, ":", { max=3 })
 		if #parts == 3 then
-			actual_message = parts[3]:trim()
+			actual_message = string.trim(parts[3])
 		end
 	end
 

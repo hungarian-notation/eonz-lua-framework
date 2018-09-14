@@ -1,12 +1,11 @@
-require 'eonz.polyfill' (_G)
-
-local ansi = {}
+local pf 	= require 'eonz.polyfill'
+local ansi 	= {}
 
 local ESCAPE_CHAR = string.char(27)
 local ESCAPE_CSI  = ESCAPE_CHAR .. "["
 
 function ansi.csi(...)
-  return string.join(ESCAPE_CSI, string.join(...))
+  return pf.string.join(ESCAPE_CSI, pf.string.join(...))
 end
 
 function ansi.move_up(n) 	return ansi.csi(n, 'A') end
@@ -15,7 +14,7 @@ function ansi.move_right(n) 	return ansi.csi(n, 'C') end
 function ansi.move_left(n) 	return ansi.csi(n, 'D') end
 
 function ansi.move_cursor(x, y)
-	local bf = string.builder()
+	local bf = pf.string.builder()
 
 	if x and x < 0 then
 		bf:append(ansi.move_left(-x))
@@ -45,7 +44,7 @@ function ansi.cursor_column(x)
 end
 
 function ansi.sgr(...)
-  return ansi.csi(string.join(...), "m")
+  return ansi.csi(pf.string.join(...), "m")
 end
 
 function ansi.ansi_color_4bit(field, index)
@@ -136,7 +135,7 @@ function ansi.apply(style)
 end
 
 function ansi.style(style, ...)
-  return ansi.apply(style) .. string.join(...) .. ansi.apply()
+  return ansi.apply(style) .. pf.string.join(...) .. ansi.apply()
 end
 
 return ansi

@@ -1,4 +1,6 @@
 local eonz 	= require 'eonz'
+local table 	= eonz.pf.table
+local string	= eonz.pf.string
 local actions	= require 'eonz.lexer.actions'
 local Token 	= require 'eonz.lexer.token'
 local info	= require 'eonz.lexer.info'
@@ -51,7 +53,7 @@ do
 			id = id[1]
 		end
 
-		id = id:trim()
+		id = string.trim(id)
 
 		if #opt.channels == 0 then
 			opt.channels = { Production.DEFAULT_CHANNEL }

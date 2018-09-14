@@ -1,6 +1,6 @@
 local support 	= require('support').configure()
 
-require('eonz.polyfill')()
+local pf 	= require 'eonz.polyfill'
 
 local console 	= require('eonz.console')
 local styles 	= require('console-style')

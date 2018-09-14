@@ -1,6 +1,8 @@
 -- @auto-fold regex /^[\t](local )?(function|[a-zA-Z_]+\s*[=]).*$/  /alternative/
 
 local eonz = require 'eonz'
+local table = eonz.pf.table
+local string = eonz.pf.string
 local SyntaxNode = require 'eonz.lexer.syntax_node'
 return function(LuaParser, define_rule)
 

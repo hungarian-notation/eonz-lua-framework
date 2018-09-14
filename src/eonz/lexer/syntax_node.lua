@@ -1,4 +1,6 @@
 local eonz 		= require 'eonz'
+local table 		= eonz.pf.table
+local string		= eonz.pf.string
 local Token 		= require 'eonz.lexer.token'
 local info		= require 'eonz.lexer.info'
 
@@ -264,7 +266,7 @@ do
 
 	function SyntaxNode:select(test)
 		local first_only	= false
-		local matched 		= table.array {}
+		local matched 		= {}
 
 		if type(test) == 'nil' then
 			return self:rules()
@@ -281,7 +283,7 @@ do
 
 		for i, child in ipairs(self:rules()) do
 			if child:roles(test) then
-				matched:insert(child)
+				table.insert(matched, child)
 			end
 		end
 

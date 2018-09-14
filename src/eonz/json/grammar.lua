@@ -1,4 +1,6 @@
 local eonz	= require 'eonz'
+local table 	= eonz.pf.table
+local string	= eonz.pf.string
 local actions	= require 'eonz.lexer.actions'
 local Grammar	= require 'eonz.lexer.grammar'
 

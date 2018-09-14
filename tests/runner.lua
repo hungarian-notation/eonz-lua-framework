@@ -1,3 +1,7 @@
+local pf	= require 'eonz.polyfill'
+local table 	= pf.extended 'table'
+local string	= pf.extended 'string'
+
 local console	= require('eonz.console')
 local styles 	= require('console-style')
 local support	= require('support')

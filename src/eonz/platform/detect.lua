@@ -1,3 +1,7 @@
+local pf 	= require 'eonz.polyfill'
+local table 	= pf.extended 'table'
+local string	= pf.extended 'string'
+
 return function (Platform)
 	local function parse_version_number(version_string)
 		local parts = string.split(version_string, ".")
@@ -163,7 +167,9 @@ return function (Platform)
 
 			-- TODO I don't have a mac to test this on.
 
-			os_name = Platform.capture('uname'):split(" \n", { empties = true })[1]:trim():lower()
+			local parts = pf.string.split(Platform.capture('uname'), " \n", { empties = true });
+
+			os_name = pf.string.trim(parts[1]):lower()
 		end
 
 		if not table.contains(Platform.os_names, os_name) then

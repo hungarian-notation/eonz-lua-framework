@@ -92,24 +92,29 @@ local function join_impl(...)
 	return table.concat(parts)
 end
 
-local 	StringBuilder = require('eonz.objects').class "StringBuilder"
-do
-	function StringBuilder.new()
-		return setmetatable({parts={}}, StringBuilder)
-	end
+local 	StringBuilder
 
-	function StringBuilder:append(...)
-		table.insert(self.parts, join_impl(...))
-		return self
-	end
+local function FACTORY_StringBuilder()
+	StringBuilder = require('eonz.objects').class "StringBuilder"
+	do
+		function StringBuilder.new()
+			return setmetatable({parts={}}, StringBuilder)
+		end
 
-	function StringBuilder:format(fmt, ...)
-		return self:append(string.format(fmt, ...))
-	end
+		function StringBuilder:append(...)
+			table.insert(self.parts, join_impl(...))
+			return self
+		end
 
-	function StringBuilder:__tostring()
-		return join_impl(unpack(self.parts))
+		function StringBuilder:format(fmt, ...)
+			return self:append(string.format(fmt, ...))
+		end
+
+		function StringBuilder:__tostring()
+			return join_impl(unpack(self.parts))
+		end
 	end
+	return StringBuilder
 end
 
 local function builder_impl()
@@ -117,13 +122,13 @@ local function builder_impl()
 end
 
 local polyfills = {
-	{ name = "trim_left", 		impl = trim_left_impl },
-	{ name = "trim_right", 		impl = trim_right_impl },
-	{ name = "trim", 		impl = trim_impl },
-	{ name = "split", 		impl = split_impl },
-	{ name = "join", 		impl = join_impl },
-	{ name = "builder", 		impl = builder_impl },
-	{ name = "StringBuilder", 	impl = StringBuilder },
+	{ name = "trim_left", 		definition = trim_left_impl 	},
+	{ name = "trim_right", 		definition = trim_right_impl 	},
+	{ name = "trim", 		definition = trim_impl 		},
+	{ name = "split", 		definition = split_impl 	},
+	{ name = "join", 		definition = join_impl 		},
+	{ name = "builder", 		definition = builder_impl 	},
+	{ name = "StringBuilder", 	factory = FACTORY_StringBuilder	},
 }
 
 return polyfills

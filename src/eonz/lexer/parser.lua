@@ -1,4 +1,6 @@
 local eonz 	= require 'eonz'
+local table 	= eonz.pf.table
+local string 	= eonz.pf.string
 local Stream 	= require 'eonz.lexer.stream'
 local Context 	= require 'eonz.lexer.context'
 
@@ -26,7 +28,7 @@ do
 				-- _stream can only correctly be a table
 				-- of channel names at this point
 				self._stream = self._ctx:stream(self._stream)
-			end				
+			end
 		end
 
 	end

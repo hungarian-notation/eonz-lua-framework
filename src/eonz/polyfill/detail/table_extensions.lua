@@ -1,5 +1,5 @@
-
-local options = require 'eonz.options'
+local pf	= require 'eonz.polyfill'
+local options 	= require 'eonz.options'
 
 local function equals_impl(a, b, recursive)
 	if rawequal (a, b) then
@@ -47,7 +47,7 @@ local function eq_impl(a, b)
 end
 
 local function array_impl(arr)
-	return setmetatable(arr, table)
+	return arr -- setmetatable(arr, pf.table)
 end
 
 local function is_array_impl(t)
@@ -73,8 +73,8 @@ local function index_value(index, table_length)
 	end
 end
 
-local index_of_impl = require 'eonz.polyfill.detail.index_of'
-local contains_impl = require 'eonz.polyfill.detail.contains'
+local index_of_impl =  require 'eonz.polyfill.detail.index_of'
+local contains_impl =  require 'eonz.polyfill.detail.contains'
 
 local function slice_impl(t, from_index, to_index)
 	local copy, count, offset
@@ -108,15 +108,15 @@ end
 
 local function join_impl(...)
 	local args 	= {...}
-	local found 	= table.array {}
+	local found 	= {} -- pf.table.array {}
 
 	for k,v in pairs(args) do
 		if is_integer_key(k) then
-			found:insert {k, v}
+			found[#found + 1] = {k, v}
 		end
 	end
 
-	found:sort(function(a, b)
+	table.sort(found, function(a, b)
 		return a[1] < b[1]
 	end)
 
@@ -124,14 +124,14 @@ local function join_impl(...)
 
 	for i, t in ipairs(found) do
 		for i, value in ipairs(t[2]) do
-			table.insert(result, value)
+			result[#result + 1] = value
 		end
 	end
 
 	return array_impl(result)
 end
 
-local merge_impl = require('eonz.polyfill.detail.merge')
+local merge_impl =  require('eonz.polyfill.detail.merge')
 
 local function copy_impl(t)
 	local copy = {}
@@ -147,14 +147,14 @@ local function copy_impl(t)
 	return copy
 end
 
-local function swap_impl(table, i, j)
-	local temp = table[j]
-	table[j] = table[i]
-	table[i] = temp
+local function swap_impl(t, i, j)
+	local temp = t[j]
+	t[j] = t[i]
+	t[i] = temp
 end
 
-local function array_copy_impl(table)
-	return slice_impl(table, 1, #table)
+local function array_copy_impl(t)
+	return slice_impl(t, 1, #t)
 end
 
 local function compare_records(a, b)
@@ -213,7 +213,7 @@ local function tostring_impl(map, opts)
 		arrays 	= true
 	})
 
-	if table.contains(opts.visited, map) then
+	if pf.table.contains(opts.visited, map) then
 		return "«recursion»"
 	else
 		table.insert(opts.visited, map)
@@ -223,7 +223,7 @@ local function tostring_impl(map, opts)
 	next_opts.level = opts.level + 1
 
 	local records = collect(map)
-	local bf = string.builder()
+	local bf = pf.string.builder()
 
 	local function indent(offset)
 		offset = offset or 0
@@ -312,36 +312,36 @@ local function stable_sort_impl(t, compare)
 end
 
 local polyfills = {
-	{ name = 'array',	impl = array_impl	},
-	{ name = '__index',	impl = table		},
-	{ name = '__eq',	impl = eq_impl		},
-	{ name = '__tostring',	impl = tostring_impl 	},
+	-- { name = 'array',	definition =  array_impl		},
+	-- { name = '__index'						},
+	-- { name = '__eq',	definition =  eq_impl			},
+	-- { name = '__tostring',	definition =  tostring_impl 	},
 
 	-- these functions operate on tables as if they
 	-- were arrays
 
-	{ name = 'is_array',	impl = is_array_impl	},
-	{ name = 'array_copy',	impl = array_copy_impl 	},
-	{ name = 'slice',	impl = slice_impl 	},
-	{ name = 'join', 	impl = join_impl 	},
-	{ name = 'swap', 	impl = swap 		},
-	{ name = 'reverse',	impl = reverse_impl 	},
-	{ name = 'stable_sort',	impl = stable_sort_impl },
-	{ name = 'index',	impl = index_of_impl	},
-	{ name = 'index_of',	impl = index_of_impl	},
-	{ name = 'contains',	impl = contains_impl	},
+	{ name = 'is_array',	definition = is_array_impl	},
+	{ name = 'array_copy',	definition = array_copy_impl 	},
+	{ name = 'slice',	definition = slice_impl 	},
+	{ name = 'join', 	definition = join_impl 		},
+	{ name = 'swap', 	definition = swap_impl 		},
+	{ name = 'reverse',	definition = reverse_impl 	},
+	{ name = 'stable_sort',	definition = stable_sort_impl 	},
+	{ name = 'index',	definition = index_of_impl	},
+	{ name = 'index_of',	definition = index_of_impl	},
+	{ name = 'contains',	definition = contains_impl	},
 
 	-- these functions are aware of key-value pairs
 	-- as well as numerical indices
 
-	{ name = 'equals',	impl = equals_impl	},
-	{ name = 'merge', 	impl = merge_impl 	},
-	{ name = 'copy',	impl = copy_impl 	},
-	{ name = 'tostring',	impl = tostring_impl 	},
+	{ name = 'equals',	definition = equals_impl	},
+	{ name = 'merge', 	definition = merge_impl 	},
+	{ name = 'copy',	definition = copy_impl 		},
+	{ name = 'tostring',	definition = tostring_impl 	},
 }
 
 if _G['unpack'] and not table.unpack then
-	table.insert(polyfills, {name = 'unpack', impl=_G['unpack']})
+	table.insert(polyfills, {name = 'unpack', definition=_G['unpack']})
 end
 
 --if table.unpack and not _G['unpack'] then

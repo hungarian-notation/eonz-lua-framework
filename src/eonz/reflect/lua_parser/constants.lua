@@ -1,4 +1,7 @@
 return function (LuaParser)
+	local pf	= require 'eonz.polyfill'
+	local table 	= pf.extended 'table'
+	local string	= pf.extended 'string'
 
 	LuaParser.OPERATOR_PRECEDENCE = {
 		{ arity=2, assoc='right', '^' },

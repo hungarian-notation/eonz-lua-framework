@@ -1,4 +1,7 @@
 local eonz 		= require 'eonz'
+local table 		= eonz.pf.table
+local string		= eonz.pf.string
+
 local Production 	= require 'eonz.lexer.production'
 local Token 		= require 'eonz.lexer.token'
 local info		= require 'eonz.lexer.info'

@@ -1,4 +1,6 @@
-require('eonz.polyfill')()
+local pf	= require 'eonz.polyfill'
+local table 	= pf.extended 'table'
+local string	= pf.extended 'string'
 
 local Platform = {}
 
