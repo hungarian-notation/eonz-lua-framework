@@ -12,12 +12,12 @@ local Stream 		= require 'eonz.lexer.stream'
 local Context 		= require 'eonz.lexer.context'
 local info		= require 'eonz.lexer.info'
 local Source 		= info.Source
-local lua_grammar	= require 'eonz.introspect.lua_grammar'
-local LuaParser		= require 'eonz.introspect.lua_parser'
+local lua_grammar	= require 'eonz.reflect.lua_grammar'
+local LuaParser		= require 'eonz.reflect.lua_parser'
 
 local target_roots	= {}
 local targets 		= eonz.platform.capture("find ../src -name \"*.lua\""):split("\n")
-local contracts 	= require('eonz.introspect.general-contracts')
+local contracts 	= require('eonz.reflect.general-contracts')
 
 for i, contract in ipairs(contracts) do
 	tests["test contract: " .. contract.name] = function ()

@@ -1,8 +1,8 @@
 local eonz 		= require 'eonz'
-local support 		= require 'eonz.introspect.utils.scope.support'
-local Value 		= require 'eonz.introspect.utils.value'
+local support 		= require 'eonz.reflect.utils.scope.support'
+local Value 		= require 'eonz.reflect.utils.value'
 
-local Variable = eonz.class { name = "eonz::introspect::Variable", extends = Value }
+local Variable = eonz.class { name = "eonz::reflect::Variable", extends = Value }
 do
 	function Variable:init(opt)
 		opt.token 				= opt.token or opt.identifier

@@ -13,12 +13,12 @@ local SyntaxNode	= require 'eonz.lexer.syntax_node'
 local Context 		= require 'eonz.lexer.context'
 local info		= require 'eonz.lexer.info'
 local Source 		= info.Source
-local lua_grammar	= require 'eonz.introspect.lua_grammar'
-local LuaParser		= require 'eonz.introspect.lua_parser'
+local lua_grammar	= require 'eonz.reflect.lua_grammar'
+local LuaParser		= require 'eonz.reflect.lua_parser'
 
 local target_roots	= {}
 local targets 		= eonz.platform.capture("find ../src -name \"*.lua\""):split("\n")
-local contracts 	= require('eonz.introspect.general-contracts')
+local contracts 	= require('eonz.reflect.general-contracts')
 
 local BUILTIN_NAMES = {
 	"syntax", "syntax_here", "syntax_next", "syntax_above"
@@ -194,8 +194,8 @@ end
 
 do
 	local source = Source {
-		text = readfile("./eonz/introspect/plain-brown-fox.lua");
-		name = "./eonz/introspect/plain-brown-fox.lua";
+		text = readfile("./eonz/reflect/plain-brown-fox.lua");
+		name = "./eonz/reflect/plain-brown-fox.lua";
 	}
 
 	local parser = LuaParser {

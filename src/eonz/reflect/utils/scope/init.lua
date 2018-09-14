@@ -1,19 +1,19 @@
 local eonz 	= require 'eonz'
-local support 	= require 'eonz.introspect.utils.scope.support'
+local support 	= require 'eonz.reflect.utils.scope.support'
 
 return function (utils)
 
-	local Value 			= require 'eonz.introspect.utils.value'
-	local ValueReference 		= require 'eonz.introspect.utils.value_reference'
+	local Value 			= require 'eonz.reflect.utils.value'
+	local ValueReference 		= require 'eonz.reflect.utils.value_reference'
 
-	local IndexingReference	 	= require 'eonz.introspect.utils.indexing_reference'
-	local InvocationReference 	= require 'eonz.introspect.utils.invocation_reference'
-	local Variable 			= require 'eonz.introspect.utils.variable'
-	local Assignment		= require 'eonz.introspect.utils.assignment'
+	local IndexingReference	 	= require 'eonz.reflect.utils.indexing_reference'
+	local InvocationReference 	= require 'eonz.reflect.utils.invocation_reference'
+	local Variable 			= require 'eonz.reflect.utils.variable'
+	local Assignment		= require 'eonz.reflect.utils.assignment'
 
-	local ScopeContext = eonz.class "eonz::introspect::ScopeContext"
+	local ScopeContext = eonz.class "eonz::reflect::ScopeContext"
 	do
-		require("eonz.introspect.utils.scope.analyzers")(ScopeContext)
+		require("eonz.reflect.utils.scope.analyzers")(ScopeContext)
 
 		function ScopeContext:init(opt)
 			if opt.root then

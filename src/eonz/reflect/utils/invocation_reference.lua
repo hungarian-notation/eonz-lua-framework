@@ -1,9 +1,9 @@
 local eonz 		= require 'eonz'
-local support 		= require 'eonz.introspect.utils.scope.support'
-local Value 		= require 'eonz.introspect.utils.value'
-local ValueReference 	= require 'eonz.introspect.utils.value_reference'
+local support 		= require 'eonz.reflect.utils.scope.support'
+local Value 		= require 'eonz.reflect.utils.value'
+local ValueReference 	= require 'eonz.reflect.utils.value_reference'
 
-local InvocationReference = eonz.class { name = "eonz::introspect::InvocationReference", extends = ValueReference }
+local InvocationReference = eonz.class { name = "eonz::reflect::InvocationReference", extends = ValueReference }
 do
 	function InvocationReference:init(opt)
 		opt.token 	= opt.token or opt.identifier

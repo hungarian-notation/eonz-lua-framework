@@ -1,10 +1,10 @@
-# AST Roles for the introspection API
+# AST Roles for the reflection API
 
-The introspection API builds an AST of arbitrary Lua source code. It uses
+The reflection API builds an AST of arbitrary Lua source code. It uses
 the roles/tags/content idiom defined by the `eonz.lexer.syntax-node` module.
 
 Each AST rule node has a sequence of roles that describe its purpose in
-the source code. The introspection API will provide a set a tools to walk
+the source code. The reflection API will provide a set a tools to walk
 these AST representations, using patterns of rules to match patterns of
 source code.
 

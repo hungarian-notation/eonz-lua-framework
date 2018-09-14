@@ -5,13 +5,13 @@ local Token 		= require 'eonz.lexer.token'
 local Stream 		= require 'eonz.lexer.stream'
 local Context 		= require 'eonz.lexer.context'
 local GenericLuaParser 	= require 'eonz.lexer.parser'
-local grammar		= require 'eonz.introspect.lua_grammar'
+local grammar		= require 'eonz.reflect.lua_grammar'
 local SyntaxNode 	= require 'eonz.lexer.syntax_node'
 
-local LuaParser = eonz.class { 	name	= "eonz::introspect::LuaParser",
+local LuaParser = eonz.class { 	name	= "eonz::reflect::LuaParser",
 				extends	= GenericLuaParser 			}
 do
-	require('eonz.introspect.lua_parser.constants')(LuaParser)
+	require('eonz.reflect.lua_parser.constants')(LuaParser)
 
 	function LuaParser:init(opt)
 		opt = eonz.options.from(opt, {
@@ -91,21 +91,21 @@ do
 		end
 	}
 
-	require('eonz.introspect.lua_parser.rules.identifiers')	(LuaParser, define_rule)
+	require('eonz.reflect.lua_parser.rules.identifiers')	(LuaParser, define_rule)
 
 	-- handles rules for most statements, except those defined in the functions
 	-- module.
-	require('eonz.introspect.lua_parser.rules.statements')	(LuaParser, define_rule)
+	require('eonz.reflect.lua_parser.rules.statements')	(LuaParser, define_rule)
 
 	-- handles rules that match expressions and parts of expressions, including
 	-- literals and table constants, but not including function invocation
-	require('eonz.introspect.lua_parser.rules.expressions')	(LuaParser, define_rule)
+	require('eonz.reflect.lua_parser.rules.expressions')	(LuaParser, define_rule)
 
 	-- matches statements and expressions that define and invoke functions
-	require('eonz.introspect.lua_parser.rules.functions')	(LuaParser, define_rule)
+	require('eonz.reflect.lua_parser.rules.functions')	(LuaParser, define_rule)
 
 	-- handles repeated lists of other rules, such as arguments, params, expressions
-	require('eonz.introspect.lua_parser.rules.lists')	(LuaParser, define_rule)
+	require('eonz.reflect.lua_parser.rules.lists')	(LuaParser, define_rule)
 
 end
 

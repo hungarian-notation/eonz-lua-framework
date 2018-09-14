@@ -1,10 +1,10 @@
 local eonz 		= require 'eonz'
-local support 		= require 'eonz.introspect.utils.scope.support'
-local Value 		= require 'eonz.introspect.utils.value'
-local Variable 		= require 'eonz.introspect.utils.variable'
-local ValueReference 	= require 'eonz.introspect.utils.value_reference'
+local support 		= require 'eonz.reflect.utils.scope.support'
+local Value 		= require 'eonz.reflect.utils.value'
+local Variable 		= require 'eonz.reflect.utils.variable'
+local ValueReference 	= require 'eonz.reflect.utils.value_reference'
 
-local Assignment = eonz.class { name = "eonz::introspect::Assignment", extends = ValueReference }
+local Assignment = eonz.class { name = "eonz::reflect::Assignment", extends = ValueReference }
 do
 	function Assignment:init(opt)
 		Assignment:__super { self, opt }

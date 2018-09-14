@@ -1,8 +1,8 @@
 local eonz 	= require 'eonz'
-local support 	= require 'eonz.introspect.utils.scope.support'
-local Value 	= require 'eonz.introspect.utils.value'
+local support 	= require 'eonz.reflect.utils.scope.support'
+local Value 	= require 'eonz.reflect.utils.value'
 
-local ValueReference = eonz.class { name = "eonz::introspect::ValueReference", extends = Value }
+local ValueReference = eonz.class { name = "eonz::reflect::ValueReference", extends = Value }
 do
 	function ValueReference:init(opt)
 		ValueReference:__super { self, opt }

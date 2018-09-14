@@ -1,6 +1,6 @@
 # Introspection API
 
-The introspection API provides utilities for tokenizing, parsing, and analyzing
+The reflection API provides utilities for tokenizing, parsing, and analyzing
 Lua source code from within a running Lua application or as a standalone tool.
 
 ## Upcoming Features:

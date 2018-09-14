@@ -1,6 +1,6 @@
 local eonz = require 'eonz'
 
-local Value = eonz.class "eonz::introspect::Value"
+local Value = eonz.class "eonz::reflect::Value"
 do
 
 	--- Common initializer for all Values and Value interactions.

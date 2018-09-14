@@ -2,7 +2,7 @@ local eonz 		= require 'eonz'
 local Token 		= require 'eonz.lexer.token'
 local info		= require 'eonz.lexer.info'
 
-local SyntaxNode = eonz.class { name = "eonz::introspect::SyntaxNode" }
+local SyntaxNode = eonz.class { name = "eonz::reflect::SyntaxNode" }
 do
 	function SyntaxNode:__init(what, children, tags)
 		self._roles 	= what or {}
