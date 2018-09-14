@@ -1,10 +1,10 @@
 return function(ScopeContext)
-	local eonz 		= require "eonz"
-	local support 		= require "eonz.introspect.utils.scope.support"
-	local Value 		= require "eonz.introspect.utils.value"
-	local ValueReference 	= require "eonz.introspect.utils.value_reference"
-	local IndexingReference = require "eonz.introspect.utils.indexing_reference"
-	local Variable 		= require "eonz.introspect.utils.variable"
+	local eonz 		= require 'eonz'
+	local support 		= require 'eonz.introspect.utils.scope.support'
+	local Value 		= require 'eonz.introspect.utils.value'
+	local ValueReference 	= require 'eonz.introspect.utils.value_reference'
+	local IndexingReference = require 'eonz.introspect.utils.indexing_reference'
+	local Variable 		= require 'eonz.introspect.utils.variable'
 
 
 

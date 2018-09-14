@@ -1,15 +1,15 @@
-local eonz 	= require "eonz"
-local support 	= require "eonz.introspect.utils.scope.support"
+local eonz 	= require 'eonz'
+local support 	= require 'eonz.introspect.utils.scope.support'
 
 return function (utils)
 
-	local Value 			= require "eonz.introspect.utils.value"
-	local ValueReference 		= require "eonz.introspect.utils.value_reference"
+	local Value 			= require 'eonz.introspect.utils.value'
+	local ValueReference 		= require 'eonz.introspect.utils.value_reference'
 
-	local IndexingReference	 	= require "eonz.introspect.utils.indexing_reference"
-	local InvocationReference 	= require "eonz.introspect.utils.invocation_reference"
-	local Variable 			= require "eonz.introspect.utils.variable"
-	local Assignment		= require "eonz.introspect.utils.assignment"
+	local IndexingReference	 	= require 'eonz.introspect.utils.indexing_reference'
+	local InvocationReference 	= require 'eonz.introspect.utils.invocation_reference'
+	local Variable 			= require 'eonz.introspect.utils.variable'
+	local Assignment		= require 'eonz.introspect.utils.assignment'
 
 	local ScopeContext = eonz.class "eonz::introspect::ScopeContext"
 	do

@@ -1,4 +1,4 @@
-local eonz		= require "eonz"
+local eonz		= require 'eonz'
 
 local Token		= eonz.lexer.Token
 local SyntaxNode	= eonz.lexer.SyntaxNode

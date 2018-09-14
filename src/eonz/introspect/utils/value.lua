@@ -1,4 +1,4 @@
-local eonz = require "eonz"
+local eonz = require 'eonz'
 
 local Value = eonz.class "eonz::introspect::Value"
 do

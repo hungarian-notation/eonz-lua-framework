@@ -1,7 +1,7 @@
-local eonz 		= require "eonz"
-local support 		= require "eonz.introspect.utils.scope.support"
-local Value 		= require "eonz.introspect.utils.value"
-local ValueReference 	= require "eonz.introspect.utils.value_reference"
+local eonz 		= require 'eonz'
+local support 		= require 'eonz.introspect.utils.scope.support'
+local Value 		= require 'eonz.introspect.utils.value'
+local ValueReference 	= require 'eonz.introspect.utils.value_reference'
 
 local IndexingReference = eonz.class { name = "eonz::introspect::IndexingReference", extends = ValueReference }
 do

@@ -1,6 +1,6 @@
-local eonz 	= require "eonz"
-local support 	= require "eonz.introspect.utils.scope.support"
-local Value 	= require "eonz.introspect.utils.value"
+local eonz 	= require 'eonz'
+local support 	= require 'eonz.introspect.utils.scope.support'
+local Value 	= require 'eonz.introspect.utils.value'
 
 local ValueReference = eonz.class { name = "eonz::introspect::ValueReference", extends = Value }
 do
