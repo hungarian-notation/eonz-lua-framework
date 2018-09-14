@@ -1,6 +1,6 @@
 
 local eonz = require 'eonz'
-local SyntaxNode = require 'eonz.lexer.syntax-node'
+local SyntaxNode = require 'eonz.lexer.syntax_node'
 return function(LuaParser, define_rule)
 
 	define_rule { name = 'identifier',

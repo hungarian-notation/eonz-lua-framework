@@ -1,7 +1,7 @@
 -- @auto-fold regex /^[\t](local )?(function|[a-zA-Z_]+\s*[=]).*$/ /define_rule {/ /.*self:alternative.*/
 
 local eonz = require 'eonz'
-local SyntaxNode = require 'eonz.lexer.syntax-node'
+local SyntaxNode = require 'eonz.lexer.syntax_node'
 return function(LuaParser, define_rule)
 
 	define_rule { name = 'expression_list',

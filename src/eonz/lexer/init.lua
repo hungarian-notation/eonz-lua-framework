@@ -10,7 +10,7 @@ return {
 	Parser 		= require('eonz.lexer.parser');
 	Production 	= require('eonz.lexer.production');
 	Stream 		= require('eonz.lexer.stream');
-	SyntaxNode 	= require('eonz.lexer.syntax-node');
+	SyntaxNode 	= require('eonz.lexer.syntax_node');
 	info		= info;
 	Source 		= info.Source;
 	SourceInterval 	= info.SourceInterval;

@@ -1,4 +1,4 @@
-local WeightedAlternative 	= require 'eonz.weighted-alternative'
+local WeightedAlternative 	= require 'eonz.weighted_alternative'
 local options			= require 'eonz.options'
 local unpack			= require 'eonz.unpack'
 
